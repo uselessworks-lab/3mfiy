@@ -1,0 +1,22 @@
+{
+  "name": "@uselessworks/3mfiy-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "3mfiy": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@uselessworks/3mfiy": "0.1.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uselessworks-lab/3mfiy.git",
+    "directory": "app/cli"
+  }
+}

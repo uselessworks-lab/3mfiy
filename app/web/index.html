@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width"
+  /><title>3mfiy browser example</title
+  ><style>
+    body {
+      font: 16px system-ui;
+      max-width: 800px;
+      margin: 48px auto;
+      padding: 0 24px;
+    }
+    button,
+    input {
+      font: inherit;
+      padding: 10px;
+    }
+    pre {
+      white-space: pre-wrap;
+      background: #eee;
+      padding: 20px;
+    }
+  </style>
+  <h1>3mfiy browser example</h1>
+  <p>Create a standard 3MF file or inspect one locally.</p>
+  <button id="create">Download example</button>
+  <p>
+    <label
+      >Inspect a 3MF file <input type="file" id="file" accept=".3mf"
+    /></label>
+  </p>
+  <pre id="output" aria-live="polite">Choose a file to inspect.</pre>
+  <script type="module" src="./main.js"></script>
+</html>

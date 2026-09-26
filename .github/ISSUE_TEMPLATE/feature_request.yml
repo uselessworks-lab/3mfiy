@@ -1,0 +1,17 @@
+name: Feature request
+description: Propose a 3MF capability or an API improvement.
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Describe the model-generator or slicer workflow this would enable.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: For format features, include the specification section or vendor format reference if known.
+    validations:
+      required: true
