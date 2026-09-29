@@ -15,7 +15,7 @@
 ```sh
 # 이 저장소에서
 npm run build
-npm pack --workspace @uselessworks/3mfiy --pack-destination /tmp
+npm pack --workspaces=false --pack-destination /tmp
 # 각 소비 프로젝트에서 패키지 배포 전 검증 시 사용
 npm install /tmp/uselessworks-3mfiy-0.1.0.tgz
 ```

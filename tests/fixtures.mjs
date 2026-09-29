@@ -2,7 +2,7 @@ import {
   ThreeMFDocument,
   MeshGeometry,
   Transform3D,
-} from "../package/core/dist/index.js";
+} from "../dist/index.js";
 export const tetrahedron = () => ({
   positions: new Float64Array([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]),
   indices: new Uint32Array([0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3]),

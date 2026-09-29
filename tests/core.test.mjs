@@ -3,22 +3,22 @@ import {
   MeshGeometry,
   MeshResource,
   Transform3D,
-} from "../package/core/dist/index.js";
+} from "../dist/index.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { unzipSync, strFromU8 } from "fflate";
-import { read3mf, write3mf } from "../package/core/dist/opc/package.js";
+import { read3mf, write3mf } from "../dist/opc/package.js";
 import { createData3mf } from "./fixtures.mjs";
-import { validateDocument } from "../package/core/dist/validate.js";
+import { validateDocument } from "../dist/validate.js";
 import {
   nextResourceId,
   translation,
-} from "../package/core/dist/model/helpers.js";
+} from "../dist/model/helpers.js";
 import {
   triangleProperties,
   compositeWeights,
-} from "../package/core/dist/model/properties.js";
-import { NS, REL } from "../package/core/dist/index.js";
+} from "../dist/model/properties.js";
+import { NS, REL } from "../dist/index.js";
 import { basic, tetrahedron, uuidFactory } from "./fixtures.mjs";
 
 test("Core meshes, Unicode XML metadata, precision and deterministic ZIP round trip", () => {

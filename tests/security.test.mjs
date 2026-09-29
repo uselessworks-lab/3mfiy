@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { unzipSync, zipSync, strToU8, strFromU8 } from "fflate";
-import { read3mf, write3mf } from "../package/core/dist/opc/package.js";
-import { NS } from "../package/core/dist/index.js";
-import { validateDocument } from "../package/core/dist/validate.js";
+import { read3mf, write3mf } from "../dist/opc/package.js";
+import { NS } from "../dist/index.js";
+import { validateDocument } from "../dist/validate.js";
 import { basic } from "./fixtures.mjs";
 const rewrite = (fn) => {
   const files = unzipSync(write3mf(basic()));

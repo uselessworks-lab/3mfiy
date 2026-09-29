@@ -11,11 +11,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { buildSync } from "esbuild";
-test("Git-root and npm-core packages expose the same typed API and CLI consumes library bytes", () => {
+test("root package exposes the typed API and CLI consumes library bytes", () => {
   const dir = mkdtempSync(join(tmpdir(), "3mfiy-package-"));
   try {
-    for (const variant of ["core", "git-root"]) {
-      const packDir = join(dir, variant);
+    {
+      const packDir = join(dir, "package");
       mkdirSync(packDir);
       const [pack] = JSON.parse(
         execFileSync(
@@ -24,9 +24,7 @@ test("Git-root and npm-core packages expose the same typed API and CLI consumes 
             "pack",
             "--cache",
             join(dir, "cache"),
-            ...(variant === "core"
-              ? ["--workspace", "package/core"]
-              : ["--workspaces=false"]),
+            "--workspaces=false",
             "--pack-destination",
             packDir,
             "--json",
@@ -43,14 +41,7 @@ test("Git-root and npm-core packages expose the same typed API and CLI consumes 
         "README.md",
         "LICENSE",
       ])
-        assert.ok(
-          names.includes(
-            variant === "git-root" && path.startsWith("dist/")
-              ? "package/core/" + path
-              : path,
-          ),
-          `${variant}: ${path}`,
-        );
+        assert.ok(names.includes(path), `package: ${path}`);
       assert.ok(
         !names.some(
           (path) =>

@@ -1,75 +1,29 @@
 # GitHub and npm releases
 
-The target repository is `https://github.com/uselessworks-lab/3mfiy`, matching svgify's organization. The npm package name is `@uselessworks/3mfiy`. Repository metadata is configured for that destination; creating/pushing the GitHub repository and publishing to npm are separate maintainer actions.
+The repository root is the `@uselessworks/3mfiy` library package. TypeScript source lives in `package/`; `prepare` compiles JavaScript and declarations into the ignored root `dist/`. Git installation and the root npm archive use the same `.` and `./bambu` exports. `app/cli` and `app/web` are development workspaces and are excluded from the library archive.
 
-## Package boundaries
+The root manifest remains private while registry publication is unapproved. Git installation is supported; npm publication is a separate director-approved release action.
 
-| Location             | Purpose                                           | Registry publication    |
-| -------------------- | ------------------------------------------------- | ----------------------- |
-| repository root      | Git-install package, exposing `package/core/dist` | private; do not publish |
-| `package/core`       | library, exposing `dist`                          | public MIT package      |
-| `app/cli`, `app/web` | local examples/tools                              | private                 |
-
-Both library manifests expose `.` and `./bambu`, ship TypeScript declarations/source maps and their source files, and declare `fflate`/`saxes` as runtime dependencies. Git installation needs the root `prepare` build. The npm-core archive already contains built JavaScript; consumers do not need TypeScript to use it.
-
-The [`files` allowlist](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#files) controls archive contents. The [`prepare` lifecycle](https://docs.npmjs.com/cli/v11/using-npm/scripts/#prepare-and-prepublish) builds Git dependencies before installation. Keep the root and core names, versions, runtime dependencies, and export targets aligned.
-
-## First GitHub upload
-
-Create an empty public GitHub repository named `uselessworks-lab/3mfiy` without generating another README or license. In this checkout, `main` and `origin` are initialized. Review the source files before the first commit:
-
-```sh
-git status --short
-git add .
-git commit -m "Initial 3mfiy library"
-git push -u origin main
-```
-
-CI runs on `main` pushes and pull requests. It checks Node.js 22 and 24, installs `xmllint`, and runs Chromium/Worker verification. The workflow does not publish packages or deploy the web example.
-
-After upload, consumers can install:
+## Git installation
 
 ```sh
 npm install git+https://github.com/uselessworks-lab/3mfiy.git#main
 ```
 
-Use a release tag or commit SHA in applications that need reproducible dependencies. After changing `prepare` or workspace layout, repeat a real Git dependency installation from a clean source revision; packing from a checkout with existing builds alone does not verify that path.
+Pin a release tag or commit SHA for reproducible builds. Git installation runs `prepare`, so Node.js 22+ and npm lifecycle scripts are required. After changing this lifecycle or the workspace layout, verify a Git dependency installation from a clean revision; an existing local build alone does not prove it.
 
 ## Prepare a release
 
-1. Update the version together in the root and core manifests, both app manifests, and their core dependency versions. Update `CHANGELOG.md` with the release scope and remaining support limits.
-2. Refresh and commit `package-lock.json` using `npm install --package-lock-only --ignore-scripts`.
-3. From a clean checkout, run:
+1. Update the root version and the app versions and dependencies. Update `CHANGELOG.md` with the release scope and support limits.
+2. Refresh and commit `package-lock.json` with `npm install --package-lock-only --ignore-scripts`.
+3. From a clean checkout, run the required release checks: `npm ci`, `npm run verify`, and `npm run test:browser` with Chromium installed. CI also checks Node.js 22 and 24 and installs `xmllint` for XML schema validation.
+4. Inspect the root archive with `npm pack --workspaces=false --dry-run`. Confirm it includes `dist/`, `package/`, README, license, and both entrypoints, while excluding apps and tests. The package-consumer test installs the archive and checks runtime imports, TypeScript resolution, and browser bundling.
+5. Commit the release, create a matching tag, push both, and check CI.
 
-   ```sh
-   npm ci
-   npm run verify
-   npx playwright install chromium
-   npm run test:browser
-   npm run pack:core
-   npm run pack:git
-   ```
+No release or publication is performed by this document.
 
-   `pack:core` writes the registry archive to `artifacts/npm/`; `pack:git` writes the Git-root archive to `artifacts/git/`. The existing package-consumer test packs them into separate temporary directories and checks runtime imports, both export paths, TypeScript NodeNext/Bundler resolution, and browser bundling.
+## Publish to npm
 
-4. Review the npm archive file list with `npm pack --workspace=package/core --dry-run`. Confirm the repository URL, MIT license, declarations, and current support documentation. Keep fixture/license attribution in the Git repository; test fixtures are not shipped as runtime library files.
-5. Commit the release and create a matching tag such as `v0.1.0`. Push the commit/tag and check CI.
+With the director's explicit approval and an authorized npm account, remove `private: true` from the root manifest as part of the reviewed release commit, then run `npm publish --access public` from the repository root. The `prepare` lifecycle builds `dist/` before packing. Verify the registry version and install it in a separate consumer after publication.
 
-## Publish the core package
-
-Use an npm account authorized to publish to `@uselessworks`. Authenticate according to your account's current npm requirements, then run from the repository root:
-
-```sh
-npm publish --workspace=package/core --access public
-```
-
-This is the actual publication step. Do not publish the private root or the apps. The core's `prepack` builds it before the archive is uploaded.
-
-After publication, verify the registry version and install it in a separate consumer:
-
-```sh
-npm view @uselessworks/3mfiy version
-npm install @uselessworks/3mfiy
-```
-
-Create GitHub release notes from the changelog and update the README's publication status. Publishing is manual; no token, registry login, or automatic publishing workflow is stored in this repository.
+The CLI package has its own manifest; publishing it, if desired, is a separate decision. No token, registry login, or automatic publishing workflow is stored here.

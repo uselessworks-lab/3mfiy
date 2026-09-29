@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { zipSync, unzipSync, strToU8 } from "fflate";
-import { read3mf, write3mf } from "../package/core/dist/opc/package.js";
+import { read3mf, write3mf } from "../dist/opc/package.js";
 import { basic } from "./fixtures.mjs";
 test("reads independently authored Consortium metadata example and preserves object/item metadata", () => {
   const bytes = zipSync({

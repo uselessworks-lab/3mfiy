@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[API documentation](package/core/README.md) · [3MF support](docs/spec-support.md) · [Bambu Studio support](docs/bambu-support.md)
+[API documentation](package/README.md) · [3MF support](docs/spec-support.md) · [Bambu Studio support](docs/bambu-support.md)
 
 3mfiy creates, reads, and edits 3MF files for 3D printing. It helps model generators such as **Formify** and **Flexify** package meshes, parts, materials, and placements into a single `.3mf` file for a slicer.
 
@@ -54,7 +54,7 @@ The package is being prepared for its first npm release. After publication:
 npm install @uselessworks/3mfiy
 ```
 
-Both installation paths expose the same API and runtime dependencies. For local package testing before publication, run `npm run pack:core` and install the archive in `artifacts/npm/`.
+Both installation paths expose the same API and runtime dependencies. For local package testing before publication, run `npm pack --workspaces=false` and install the archive.
 
 ## Create a 3MF document
 
@@ -92,12 +92,13 @@ In a browser, wrap the bytes in a `Blob` for your application's download flow:
 const blob = new Blob([new Uint8Array(bytes)], { type: "model/3mf" });
 ```
 
-Use `ThreeMFBuilder` to add parts incrementally. See the [API documentation](package/core/README.md) for editing models, assigning materials, applying transforms, and creating Bambu Studio projects. The [integration guide](docs/migration.md) describes how to connect model generator output to 3mfiy.
+Use `ThreeMFBuilder` to add parts incrementally. See the [API documentation](package/README.md) for editing models, assigning materials, applying transforms, and creating Bambu Studio projects. The [integration guide](docs/migration.md) describes how to connect model generator output to 3mfiy.
 
 ## Repository layout
 
 ```text
-package/core/  publishable @uselessworks/3mfiy library
+package/  library TypeScript source
+dist/     generated JavaScript and declarations
 app/cli/       private inspection/validation CLI
 app/web/       private browser example
 examples/      executable consumer examples
@@ -107,7 +108,7 @@ docs/          architecture, support matrices, migration, and release guide
 .github/       CI and contribution templates
 ```
 
-The repository root supports installation from Git; `package/core` is the npm package. The CLI and browser app are development tools and examples.
+The repository root is the library package for Git installation and a future npm release. The CLI and browser app are development tools and examples.
 
 ## Development
 

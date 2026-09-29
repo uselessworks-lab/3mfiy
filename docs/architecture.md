@@ -3,7 +3,7 @@
 공개 API는 `ThreeMFDocument`, `ThreeMFModel`, resource 계층, geometry/transform 값 객체, Bambu 프로젝트 객체로 구성됩니다. 두 package entrypoint에는 독립적인 생성·읽기·쓰기 함수 export가 없습니다. `create3mf`라는 생성 동작은 `ThreeMFDocument.create3mf()`로 제공하며 결과의 document도 클래스 인스턴스입니다.
 
 ```text
-package/core/src/
+package/
   domain/       문서·모델·리소스 소유권, 값 객체, 편집 메서드
   model/        생성 builder, 내부 DTO, enum, 모델 검증 실행 상태
   extensions/   ResourceCodec<T> 및 재질 codec, Production 처리

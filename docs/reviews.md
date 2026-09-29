@@ -60,7 +60,7 @@
 
 ## 공개 API OOP 전환: 최종 리뷰
 
-이전 내부 클래스 정리에 이어 공개 함수 API를 제거했습니다. `ThreeMFDocument`/`ThreeMFModel`/resource 계층과 `BambuStudioProject`가 실제 상태·소유권·편집·저장 책임을 갖습니다. 데이터 snapshot만 `*Data` 타입으로 노출합니다. 현재 API는 [객체 구조](architecture.md)와 [패키지 예제](../package/core/README.md)를 기준으로 합니다.
+이전 내부 클래스 정리에 이어 공개 함수 API를 제거했습니다. `ThreeMFDocument`/`ThreeMFModel`/resource 계층과 `BambuStudioProject`가 실제 상태·소유권·편집·저장 책임을 갖습니다. 데이터 snapshot만 `*Data` 타입으로 노출합니다. 현재 API는 [객체 구조](architecture.md)와 [패키지 예제](../package/README.md)를 기준으로 합니다.
 
 | 후속 지적                                           | 수정·확인                                                                                                                |
 | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |

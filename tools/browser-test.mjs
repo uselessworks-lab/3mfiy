@@ -15,8 +15,8 @@ const cached = existsSync(cache)
   : undefined;
 const { outputFiles } = await build({
   stdin: {
-    contents: `import {ThreeMFDocument,ThreeMFBuilder,MeshGeometry,ThreeMFUnit} from './package/core/dist/index.js';
-import {BambuStudioProject,BambuProfile,BambuPlate} from './package/core/dist/adapters/bambu.js';
+    contents: `import {ThreeMFDocument,ThreeMFBuilder,MeshGeometry,ThreeMFUnit} from './dist/index.js';
+import {BambuStudioProject,BambuProfile,BambuPlate} from './dist/adapters/bambu.js';
 export function exercise(){
  if(typeof process!=='undefined'||typeof Buffer!=='undefined')throw Error('Unexpected Node globals');
  const geometry=new MeshGeometry([0,0,0,1,0,0,0,1,0,0,0,1],[0,2,1,0,1,3,0,3,2,1,2,3]);

@@ -4,21 +4,18 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "package/*",
     "app/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "typecheck": "npm run build -w @uselessworks/3mfiy && npm run typecheck --workspaces --if-present",
+    "build": "npm run build:core && npm run build --workspaces --if-present",
+    "typecheck": "npm run build:core && npm run typecheck --workspaces --if-present",
     "test": "npm run build && node --test tests/*.test.mjs",
     "verify": "npm run typecheck && npm test",
     "test:browser": "node tools/browser-test.mjs",
     "cli": "node app/cli/dist/main.js",
-    "format": "prettier --write package/core/src app tests/*.mjs tools examples docs README.md",
-    "build:core": "npm run build --workspace=package/core",
-    "prepare": "npm run build:core",
-    "pack:core": "node -e \"require('node:fs').mkdirSync('artifacts/npm', { recursive: true })\" && npm pack --workspace=package/core --pack-destination=artifacts/npm",
-    "pack:git": "node -e \"require('node:fs').mkdirSync('artifacts/git', { recursive: true })\" && npm pack --workspaces=false --pack-destination=artifacts/git"
+    "format": "prettier --write package app tests/*.mjs tools examples docs README.md",
+    "build:core": "tsc -p package/tsconfig.json",
+    "prepare": "npm run build:core"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
@@ -51,23 +48,21 @@
   "engines": {
     "node": ">=22"
   },
-  "main": "./package/core/dist/index.js",
-  "types": "./package/core/dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./package/core/dist/index.d.ts",
-      "import": "./package/core/dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./bambu": {
-      "types": "./package/core/dist/adapters/bambu.d.ts",
-      "import": "./package/core/dist/adapters/bambu.js"
+      "types": "./dist/adapters/bambu.d.ts",
+      "import": "./dist/adapters/bambu.js"
     }
   },
   "files": [
-    "package/core/dist",
-    "package/core/src",
-    "package/core/README.md",
-    "docs",
+    "dist",
+    "package",
     "README.md",
     "LICENSE"
   ],

@@ -2,10 +2,10 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { strToU8 } from "fflate";
 import { basic, uuidFactory } from "./fixtures.mjs";
-import { read3mf, write3mf } from "../package/core/dist/opc/package.js";
-import { validateDocument } from "../package/core/dist/validate.js";
-import { withProductionUUIDs } from "../package/core/dist/extensions/production.js";
-import { REL } from "../package/core/dist/index.js";
+import { read3mf, write3mf } from "../dist/opc/package.js";
+import { validateDocument } from "../dist/validate.js";
+import { withProductionUUIDs } from "../dist/extensions/production.js";
+import { REL } from "../dist/index.js";
 test("explicit relationship IDs survive semantic duplicates used by opaque XML", () => {
   const doc = basic();
   doc.attachments = [
