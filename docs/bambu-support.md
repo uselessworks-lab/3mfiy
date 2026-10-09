@@ -1,5 +1,9 @@
 # Bambu Studio 지원 감사
 
+Project 갤러리의 `Auxiliaries/Model Pictures/`·`Profile Pictures/` 첨부를 지원한다.
+API part URI에는 `%20`을 사용하며 ZIP에는 Studio가 읽는 실제 공백 폴더명을 저장한다.
+`DesignerCover`·`ProfileCover`의 파일명과 PNG 바이트는 호출자가 제공한다.
+
 검토일: 2026-09-26. 표준 3MF와 Bambu 프로젝트 형식은 별개입니다. 이 어댑터는 **슬라이싱 전 편집용 프로젝트 생성**을 지원하며, Studio가 저장하는 모든 데이터를 이해하거나 슬라이싱 결과를 생성하는 기능은 아닙니다.
 
 이번 점검에서는 로컬 Bambu Studio의 `src/libslic3r/Format/bbs_3mf.cpp/.hpp`, `Config.cpp`, `PresetBundle.cpp`, `Preset.cpp`, `Model.cpp`, `GUI/Widgets/FilamentBitmapUtils.cpp`를 읽고, Formify/Runify/Spookify/Snowfiy/Flexify의 exporter와 대조했습니다. 공개 참고 원문은 [Bambu Studio importer/exporter](https://github.com/bambulab/BambuStudio/blob/master/src/libslic3r/Format/bbs_3mf.cpp), [configuration serialization](https://github.com/bambulab/BambuStudio/blob/master/src/libslic3r/Config.cpp), [preset bundle](https://github.com/bambulab/BambuStudio/blob/master/src/libslic3r/PresetBundle.cpp)입니다. 로컬 Studio 소스는 커스텀 변경이 포함된 체크아웃이므로 공개 master와 버전별 차이가 있을 수 있습니다.

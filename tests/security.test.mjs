@@ -129,6 +129,17 @@ test("ZIP path traversal, aliases and missing content types are rejected", () =>
     (e) => e.code === "PART_PATH",
   );
 });
+
+test("Bambu picture directory ZIP spaces round-trip as encoded OPC URIs without duplicate aliases", () => {
+  const doc=basic();
+  doc.attachments=[{path:'/Auxiliaries/Model%20Pictures/cover.png',contentType:'image/png',data:new Uint8Array([1,2,3])}];
+  const bytes=write3mf(doc),files=unzipSync(bytes);
+  assert.deepEqual(files['Auxiliaries/Model Pictures/cover.png'],new Uint8Array([1,2,3]));
+  assert.match(strFromU8(files['[Content_Types].xml']),/Model%20Pictures/);
+  assert.equal(read3mf(bytes).document.attachments[0].path,'/Auxiliaries/Model%20Pictures/cover.png');
+  files['Auxiliaries/Model%20Pictures/cover.png']=new Uint8Array([4]);
+  assert.throws(()=>read3mf(zipSync(files)),error=>error.code==='DUPLICATE_PART');
+});
 test("XML complexity limits are enforced", () => {
   assert.throws(
     () => read3mf(write3mf(basic()), { limits: { maxXmlDepth: 2 } }),

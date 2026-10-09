@@ -17,6 +17,7 @@ vendor 예외로 보존한다. Core 표준 metadata의 이름 규칙을 확대�
 | 범위               | 기능                                                         | 읽기                   | 쓰기        | 검증/제약                                                                                   |
 | ------------------ | ------------------------------------------------------------ | ---------------------- | ----------- | ------------------------------------------------------------------------------------------- |
 | Core §2, OPC       | ZIP32 store/deflate, content types, root/part relationships  | 지원                   | 지원        | CRC, 중복 경로, 경로 탈출, 참조, 크기 제한. ZIP64/분할/암호화 ZIP 미지원                    |
+| Core §2, OPC       | 공백 포함 ZIP 첨부 이름과 `%20` part URI | 지원 | 지원 | URI는 인코딩하고 ZIP 파일명은 공백으로 저장. 두 표현의 중복 alias 거부 |
 | Core §3            | 6종 단위, xml:lang, 12수 affine transform                    | 지원                   | 지원        | 유한 수·가역성. 단위 자동 변환 없음                                                         |
 | Core §3.4          | 모델 메타데이터, preserve/type, object/item metadatagroup    | 지원                   | 지원        | 표준 이름/네임스페이스 선언·중복 확인. metadata type 값의 XSD 타입별 내용 검증은 미지원     |
 | Core §3.4          | resources/build, 복수 인스턴스, partnumber                   | 지원                   | 지원        | 모델별 ID, 대상 종류, 참조 유효성                                                           |

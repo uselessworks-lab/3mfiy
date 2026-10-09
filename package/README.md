@@ -1,5 +1,7 @@
 # @uselessworks/3mfiy
 
+Bambu Project 이미지 첨부 경로는 `/Auxiliaries/Model%20Pictures/cover.png`처럼 인코딩한 URI를 사용합니다. ZIP에는 `Model Pictures`로 저장하며 읽을 때 같은 URI로 복원합니다.
+
 3mfiy creates, reads, and edits 3MF files for 3D printing. Model generators such as Formify and Flexify can use it to package meshes, parts, materials, and placements into a single `.3mf` file for a slicer. Bambu Studio support adds plates, filament assignments, printer and print settings, embedded presets, and thumbnails.
 
 Runs in Node.js 22+, browsers, and Web Workers, with TypeScript declarations included.
