@@ -4,6 +4,10 @@
 
 Runs in Node.js 22+, browsers, and Web Workers, with TypeScript declarations included.
 
+Bambu namespace를 선언한 모델은 `ThreeMFModel.setMetadata()` 또는 생성자의
+`metadata`로 MakerWorld 모델/프로필 연결 키를 보존할 수 있습니다. 지원 이름과
+제약은 [Bambu 지원 표](../docs/bambu-support.md#세부-지원-표)를 따릅니다.
+
 ## Installation
 
 The package is being prepared for its first npm release. After publication:

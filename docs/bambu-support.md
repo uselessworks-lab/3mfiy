@@ -19,6 +19,14 @@
 
 ## 세부 지원 표
 
+`ThreeMFModel.setMetadata()`와 생성자의 `metadata`는 MakerWorld 연결 키
+`DesignModelId`, `DesignProfileId`, `DesignRegion`, `DesignerUserId`, `ProfileTitle`,
+`ProfileUserId`, `ProfileUserName`, `Region`, `DesignerCover`, `ProfileCover`를 읽기/쓰기에서 보존한다.
+모델은 `http://schemas.bambulab.com/package/2021` namespace를 선언해야 한다
+(prefix는 고정하지 않는다). 그 외 알 수 없는 unqualified 키는 계속 거절한다.
+이 ID는 게시물 URL의 숫자 ID와 다르며 호출자가 검증된 값을 제공한다.
+연결 키 지원은 MakerWorld 실적 귀속이나 이미지 파일의 존재를 보증하지 않는다.
+
 | 기능                                                                                                                | 읽기                                           | 생성/변경               | 범위·제약                                                                                                                                         |
 | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 통합 `project_settings.config`                                                                                      | `BambuStudioProject.inspect().profile/presets` | 지원                    | printer/process/filament를 합친 호출자 소유 설정. 임의 vendor key 보존, 문자열 wire 타입 검사                                                     |
