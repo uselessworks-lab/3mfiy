@@ -13,6 +13,11 @@ export interface XmlNode {
 export function parseXml(
   xml: string,
   limits: { maxXmlDepth?: number; maxXmlNodes?: number } = {},
+  consume?: (
+    node: XmlNode,
+    parent?: XmlNode,
+    grandparent?: XmlNode,
+  ) => boolean | void,
 ): XmlNode {
   const parser = new SaxesParser({ xmlns: true });
   const stack: XmlNode[] = [];
@@ -55,7 +60,10 @@ export function parseXml(
     if (node) node.text += value;
   });
   parser.on("closetag", () => {
-    stack.pop();
+    const node = stack.pop()!;
+    const parent = stack.at(-1);
+    if (consume?.(node, parent, stack.at(-2)) === false && parent)
+      parent.children.pop();
   });
   try {
     parser.write(xml).close();

@@ -9,6 +9,7 @@ import { usesProduction } from "../extensions/production.js";
 import type {
   BuildItem,
   Metadata,
+  Mesh,
   Model,
   ObjectReference,
   ObjectResource,
@@ -65,7 +66,10 @@ const referenceAttrs = [
   `${NS.production}|path`,
   `${NS.production}|UUID`,
 ];
-function readObject(node: XmlNode): ObjectResource {
+function readObject(
+  node: XmlNode,
+  meshBuffers: WeakMap<XmlNode, Mesh>,
+): ObjectResource {
   checkNode(
     node,
     [
@@ -120,40 +124,16 @@ function readObject(node: XmlNode): ObjectResource {
   const triangles = onlyChild(mesh!, "triangles", NS.core)!;
   checkNode(vertices, [], [core("vertex")]);
   checkNode(triangles, [], [core("triangle")]);
-  const positions = new Float64Array(vertices.children.length * 3);
-  const indices: number[] = [];
-  const properties: (TriangleProperties | undefined)[] = [];
-  vertices.children.forEach((v, i) => {
-    checkNode(v, plain("x", "y", "z"), []);
-    positions.set(
-      [numberAttr(v, "x")!, numberAttr(v, "y")!, numberAttr(v, "z")!],
-      i * 3,
-    );
-  });
-  for (const t of triangles.children) {
-    checkNode(t, plain("v1", "v2", "v3", "pid", "p1", "p2", "p3"), []);
-    indices.push(
-      numberAttr(t, "v1")!,
-      numberAttr(t, "v2")!,
-      numberAttr(t, "v3")!,
-    );
-    const p = {
-      pid: numberAttr(t, "pid", false),
-      p1: numberAttr(t, "p1", false),
-      p2: numberAttr(t, "p2", false),
-      p3: numberAttr(t, "p3", false),
-    };
-    properties.push(
-      Object.values(p).some((v) => v !== undefined) ? p : undefined,
-    );
-  }
+  const buffers = meshBuffers.get(mesh!) ?? { positions: [], indices: [] };
   return {
     ...base,
     property: pid === undefined ? undefined : { pid, index: pindex! },
     mesh: {
-      positions,
-      indices,
-      properties: properties.some(Boolean) ? properties : undefined,
+      positions: Float64Array.from(buffers.positions),
+      indices: buffers.indices,
+      properties: buffers.properties?.some(Boolean)
+        ? buffers.properties
+        : undefined,
     },
   };
 }
@@ -162,7 +142,51 @@ export function parseModel(
   path: string,
   limits: ReadLimits = {},
 ): Model {
-  const root = parseXml(xml, limits);
+  // Keep the structural XML tree, but consume mesh leaves directly into numeric
+  // buffers. Retaining millions of attribute/namespace objects until conversion
+  // can exhaust a browser heap even when the archive is within its read limits.
+  const meshBuffers = new WeakMap<XmlNode, Mesh>();
+  const root = parseXml(xml, limits, (node, parent, grandparent) => {
+    if (
+      grandparent?.uri !== NS.core ||
+      grandparent.local !== "mesh" ||
+      parent?.uri !== NS.core ||
+      !["vertices", "triangles"].includes(parent.local)
+    )
+      return;
+    const leaf = parent.local === "vertices" ? "vertex" : "triangle";
+    if (node.uri !== NS.core || node.local !== leaf) return;
+    let buffers = meshBuffers.get(grandparent);
+    if (!buffers) {
+      buffers = { positions: [], indices: [], properties: [] };
+      meshBuffers.set(grandparent, buffers);
+    }
+    if (leaf === "vertex") {
+      checkNode(node, plain("x", "y", "z"), []);
+      (buffers.positions as number[]).push(
+        numberAttr(node, "x")!,
+        numberAttr(node, "y")!,
+        numberAttr(node, "z")!,
+      );
+    } else {
+      checkNode(node, plain("v1", "v2", "v3", "pid", "p1", "p2", "p3"), []);
+      (buffers.indices as number[]).push(
+        numberAttr(node, "v1")!,
+        numberAttr(node, "v2")!,
+        numberAttr(node, "v3")!,
+      );
+      const p = {
+        pid: numberAttr(node, "pid", false),
+        p1: numberAttr(node, "p1", false),
+        p2: numberAttr(node, "p2", false),
+        p3: numberAttr(node, "p3", false),
+      };
+      (buffers.properties as (TriangleProperties | undefined)[]).push(
+        Object.values(p).some((v) => v !== undefined) ? p : undefined,
+      );
+    }
+    return false;
+  });
   if (root.local !== "model" || root.uri !== NS.core)
     fail("MODEL_NAMESPACE", "Not a Core 3MF model");
   checkNode(
@@ -201,11 +225,10 @@ export function parseModel(
     requiredExtensions,
     recommendedExtensions: extensionUris("recommendedextensions"),
     metadata: root.children.filter((n) => n.local === "metadata").map(metadata),
-    resources: resources.children.map(
-      (node): Resource =>
-        node.uri === NS.core && node.local === "object"
-          ? readObject(node)
-          : readMaterial(node),
+    resources: resources.children.map((node): Resource =>
+      node.uri === NS.core && node.local === "object"
+        ? readObject(node, meshBuffers)
+        : readMaterial(node),
     ),
     buildUuid: attr(build, "UUID", NS.production),
     build: build.children.map((node): BuildItem => {

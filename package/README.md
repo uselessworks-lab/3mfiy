@@ -144,6 +144,8 @@ Bambu authoring regenerates model settings and header-only slice info. It is for
 
 Core, Materials and Production support is documented in the [3MF support matrix](https://github.com/uselessworks-lab/3mfiy/blob/main/docs/spec-support.md); partial support does not imply full conformance. Unsupported model XML fails explicitly instead of being silently discarded. ZIP32/UTF-8 input has configurable size/complexity limits. Geometry/topology is validated without repair. Input is processed in memory; use a Worker for large files. Browser output is a `Uint8Array` that can be wrapped in a `Blob`; filesystem and download policy belong to the application.
 
+Mesh XML leaves are validated and consumed directly into numeric buffers to avoid retaining a second full XML tree for large meshes. Existing namespace, numeric precision and size/complexity checks still apply.
+
 ## License
 
 Licensed under the [MIT License](https://github.com/uselessworks-lab/3mfiy/blob/main/LICENSE). Copyright (c) 2026 useless works.
