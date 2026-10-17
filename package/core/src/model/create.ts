@@ -10,6 +10,8 @@ export interface Create3mfPart {
   mesh: MeshGeometry;
   color?: string;
   materialName?: string;
+  /** One sRGB hex color per mesh vertex. Creates a Materials color group and corner indices. */
+  vertexColors?: readonly string[];
   transform?: Transform3D;
 }
 export interface Create3mfObject {
@@ -49,7 +51,10 @@ export class ThreeMFBuilder {
     // Geometry and transforms are immutable value objects; snapshot the request containers.
     this.#objects.push({
       ...object,
-      parts: object.parts.map((part) => ({ ...part })),
+      parts: object.parts.map((part) => ({
+        ...part,
+        vertexColors: part.vertexColors?.slice(),
+      })),
     });
     return this;
   }
@@ -85,7 +90,47 @@ export class ThreeMFBuilder {
     for (const object of this.#objects) {
       const parts = object.parts.map((part) => {
         const mesh = meshModel.addMesh(part.mesh, { name: part.name });
-        if (part.color)
+        if (part.vertexColors) {
+          const data = part.mesh.toData();
+          if (
+            part.vertexColors.length !== part.mesh.vertexCount ||
+            data.properties?.some(Boolean)
+          )
+            fail(
+              "VERTEX_COLORS",
+              "Provide one color per vertex and no conflicting triangle properties",
+            );
+          const colors = meshModel.addColorGroup(),
+            indices = new Map<string, number>();
+          const vertices = part.vertexColors.map((color) => {
+            if (
+              typeof color !== "string" ||
+              !/^#[\da-f]{6}([\da-f]{2})?$/i.test(color)
+            )
+              fail(
+                "VERTEX_COLORS",
+                "Vertex colors must be sRGB #RRGGBB or #RRGGBBAA strings",
+              );
+            const key = color.toUpperCase();
+            if (!indices.has(key)) indices.set(key, colors.add(key));
+            return indices.get(key)!;
+          });
+          mesh.replaceGeometry(
+            MeshGeometry.fromData({
+              ...data,
+              properties: Array.from(
+                { length: part.mesh.triangleCount },
+                (_, i) => ({
+                  pid: colors.id,
+                  p1: vertices[data.indices[i * 3]!]!,
+                  p2: vertices[data.indices[i * 3 + 1]!]!,
+                  p3: vertices[data.indices[i * 3 + 2]!]!,
+                }),
+              ),
+            }),
+          );
+          mesh.setProperty(colors.id, 0);
+        } else if (part.color)
           mesh.setProperty(
             palette!.id,
             materials.get(this.materialKey(part))!.index,

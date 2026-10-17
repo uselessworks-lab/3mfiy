@@ -208,6 +208,20 @@ export class BambuStudioProject {
     return this;
   }
   toDocument(): ThreeMFDocument {
+    const slots = filamentSlotCount(this.#profile.toData());
+    for (const model of this.#document.toData().models)
+      for (const resource of model.resources)
+        if (
+          resource.kind === "object" &&
+          resource.mesh?.bambuTriangleColors?.some(
+            (slot) =>
+              slot !== undefined && (slots === undefined || slot > slots),
+          )
+        )
+          fail(
+            "BAMBU_TRIANGLE_COLORS",
+            "Painted filament slot is outside the project profile",
+          );
     const data = withBambuProject(this.#document.toData(), {
       applicationVersion: this.#applicationVersion,
       projectSettings: this.#profile.toData(),

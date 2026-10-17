@@ -1,3 +1,4 @@
+import { readBambuPaint, writeBambuPaint } from "./bambu-paint.js";
 import { NS } from "../constants.js";
 import { fail } from "../errors.js";
 import {
@@ -123,6 +124,7 @@ function readObject(node: XmlNode): ObjectResource {
   const positions = new Float64Array(vertices.children.length * 3);
   const indices: number[] = [];
   const properties: (TriangleProperties | undefined)[] = [];
+  const bambuTriangleColors: (number | undefined)[] = [];
   vertices.children.forEach((v, i) => {
     checkNode(v, plain("x", "y", "z"), []);
     positions.set(
@@ -131,12 +133,17 @@ function readObject(node: XmlNode): ObjectResource {
     );
   });
   for (const t of triangles.children) {
-    checkNode(t, plain("v1", "v2", "v3", "pid", "p1", "p2", "p3"), []);
+    checkNode(
+      t,
+      plain("v1", "v2", "v3", "pid", "p1", "p2", "p3", "paint_color"),
+      [],
+    );
     indices.push(
       numberAttr(t, "v1")!,
       numberAttr(t, "v2")!,
       numberAttr(t, "v3")!,
     );
+    bambuTriangleColors.push(readBambuPaint(attr(t, "paint_color")));
     const p = {
       pid: numberAttr(t, "pid", false),
       p1: numberAttr(t, "p1", false),
@@ -154,6 +161,9 @@ function readObject(node: XmlNode): ObjectResource {
       positions,
       indices,
       properties: properties.some(Boolean) ? properties : undefined,
+      bambuTriangleColors: bambuTriangleColors.some((v) => v !== undefined)
+        ? bambuTriangleColors
+        : undefined,
     },
   };
 }
@@ -310,6 +320,7 @@ export function serializeModel(model: Model): string {
               v2: mesh.indices[i + 1],
               v3: mesh.indices[i + 2],
               ...mesh.properties?.[i / 3],
+              paint_color: writeBambuPaint(mesh.bambuTriangleColors?.[i / 3]),
             }),
           );
         shape = element(

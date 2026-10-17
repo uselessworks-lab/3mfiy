@@ -56,7 +56,11 @@ export class MeshGeometry {
     this.#data = DataSnapshot.copy({ positions, indices, properties });
   }
   static fromData(data: Mesh): MeshGeometry {
-    return new MeshGeometry(data.positions, data.indices, data.properties);
+    return new MeshGeometry(
+      data.positions,
+      data.indices,
+      data.properties,
+    ).withBambuTriangleColors(data.bambuTriangleColors);
   }
   static fromBuffers(
     positions: NumericArray,
@@ -64,6 +68,17 @@ export class MeshGeometry {
     options: { stride?: number; offset?: number } = {},
   ): MeshGeometry {
     return MeshGeometry.fromData(meshFromBuffers(positions, indices, options));
+  }
+  /** Owns a copy. Slot bounds and triangle alignment are checked by document validation. */
+  withBambuTriangleColors(colors: Mesh["bambuTriangleColors"]): MeshGeometry {
+    const geometry = new MeshGeometry(
+      this.#data.positions,
+      this.#data.indices,
+      this.#data.properties,
+    );
+    if (colors !== undefined)
+      geometry.#data.bambuTriangleColors = DataSnapshot.copy(colors);
+    return geometry;
   }
   get vertexCount(): number {
     return this.#data.positions.length / 3;
@@ -93,13 +108,17 @@ export class MeshGeometry {
       const properties = this.#data.properties?.map((p) =>
         p ? { ...p, p2: p.p3, p3: p.p2 } : undefined,
       );
-      return new MeshGeometry(positions, indices, properties);
+      return new MeshGeometry(
+        positions,
+        indices,
+        properties,
+      ).withBambuTriangleColors(this.#data.bambuTriangleColors);
     }
     return new MeshGeometry(
       positions,
       this.#data.indices,
       this.#data.properties,
-    );
+    ).withBambuTriangleColors(this.#data.bambuTriangleColors);
   }
   toData(): Mesh {
     return DataSnapshot.copy(this.#data);

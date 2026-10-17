@@ -574,6 +574,26 @@ export class ModelValidator {
         rp,
         "Triangle properties array must align with triangles",
       );
+    if (mesh.bambuTriangleColors) {
+      if (mesh.bambuTriangleColors.length !== mesh.indices.length / 3)
+        this.error(
+          "BAMBU_TRIANGLE_COLORS",
+          rp,
+          "Bambu color assignments must align with triangles",
+        );
+      if (
+        mesh.bambuTriangleColors.some(
+          (slot) =>
+            slot !== undefined &&
+            (!Number.isInteger(slot) || slot < 1 || slot > 255),
+        )
+      )
+        this.error(
+          "BAMBU_TRIANGLE_COLORS",
+          rp,
+          "Bambu face filament slots must be integers from 1 to 255",
+        );
+    }
     if (r.property) property(r.property.pid, r.property.index, rp);
     for (let i = 0; i < mesh.indices.length; i += 3) {
       const a = mesh.indices[i],

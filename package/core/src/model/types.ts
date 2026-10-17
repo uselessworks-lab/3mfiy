@@ -47,6 +47,8 @@ export interface Mesh {
   indices: NumericArray;
   /** One entry per triangle. An undefined entry inherits object properties. */
   properties?: readonly (TriangleProperties | undefined)[];
+  /** Bambu unsplit face painting: 1-based filament slot per triangle; undefined inherits the part. */
+  bambuTriangleColors?: readonly (number | undefined)[];
 }
 export interface ObjectReference {
   objectId: number;

@@ -141,3 +141,16 @@ Core, Materials and Production support is documented in the [3MF support matrix]
 ## License
 
 Licensed under the [MIT License](https://github.com/uselessworks-lab/3mfiy/blob/main/LICENSE). Copyright (c) 2026 useless works.
+
+### Vertex and printable face colors
+
+A `ThreeMFBuilder` part may supply `vertexColors: readonly string[]`, one sRGB
+hex value per geometry vertex. The builder owns a copy, creates a color group,
+and assigns triangle corner indices. Existing triangle properties are rejected
+to avoid silently overwriting them.
+
+For Bambu output, supply caller-selected 1-based filament slots per triangle:
+`mesh.withBambuTriangleColors([1, 2, 1, 2])`. This immutable method copies the
+array, preserves it through transforms, and writes unsplit `paint_color` leaves.
+It does not quantize RGB colors or subdivide geometry. Use `BambuStudioProject`
+with a matching filament profile; slots outside that profile are rejected.
