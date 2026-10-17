@@ -89,7 +89,8 @@ export class ThreeMFBuilder {
     const objects: Create3mfResult["objects"][number][] = [];
     for (const object of this.#objects) {
       const parts = object.parts.map((part) => {
-        const mesh = meshModel.addMesh(part.mesh, { name: part.name });
+        let geometry = part.mesh;
+        let property: { pid: number; index: number } | undefined;
         if (part.vertexColors) {
           const data = part.mesh.toData();
           if (
@@ -115,26 +116,27 @@ export class ThreeMFBuilder {
             if (!indices.has(key)) indices.set(key, colors.add(key));
             return indices.get(key)!;
           });
-          mesh.replaceGeometry(
-            MeshGeometry.fromData({
-              ...data,
-              properties: Array.from(
-                { length: part.mesh.triangleCount },
-                (_, i) => ({
-                  pid: colors.id,
-                  p1: vertices[data.indices[i * 3]!]!,
-                  p2: vertices[data.indices[i * 3 + 1]!]!,
-                  p3: vertices[data.indices[i * 3 + 2]!]!,
-                }),
-              ),
-            }),
-          );
-          mesh.setProperty(colors.id, 0);
+          geometry = MeshGeometry.fromData({
+            ...data,
+            properties: Array.from(
+              { length: part.mesh.triangleCount },
+              (_, i) => ({
+                pid: colors.id,
+                p1: vertices[data.indices[i * 3]!]!,
+                p2: vertices[data.indices[i * 3 + 1]!]!,
+                p3: vertices[data.indices[i * 3 + 2]!]!,
+              }),
+            ),
+          });
+          property = { pid: colors.id, index: 0 };
         } else if (part.color)
-          mesh.setProperty(
-            palette!.id,
-            materials.get(this.materialKey(part))!.index,
-          );
+          property = {
+            pid: palette!.id,
+            index: materials.get(this.materialKey(part))!.index,
+          };
+        // Property resources must precede every mesh that references them.
+        const mesh = meshModel.addMesh(geometry, { name: part.name });
+        if (property) mesh.setProperty(property.pid, property.index);
         return mesh;
       });
       const group = root.addComponents({

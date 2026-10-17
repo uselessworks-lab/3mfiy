@@ -2,6 +2,8 @@
 
 ## Unreleased — 0.1.0
 
+- Declare vertex-color resources before referencing meshes so multicolor builder output passes resource-order validation.
+
 - Builder vertex-color authoring with standard Materials corner indices; immutable, triangle-aligned Bambu unsplit face filament assignments and profile bounds checks.
 
 - Object-oriented TypeScript document, model, resource, geometry, and transform APIs for creating and controlling 3MF files.
