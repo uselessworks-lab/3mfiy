@@ -27,3 +27,6 @@ export type {
   BambuInstance,
   BambuAssemblyItem,
 } from "./bambu/types.js";
+
+export { BambuFacetPainting } from "./bambu/painting.js";
+export type { BambuPaintingOptions } from "./bambu/painting.js";

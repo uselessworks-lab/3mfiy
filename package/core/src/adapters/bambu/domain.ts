@@ -1,3 +1,4 @@
+import { bambuPaintSlots } from "../../model/bambu-paint.js";
 import { DataSnapshot } from "../../domain/snapshot.js";
 import { ThreeMFDocument } from "../../domain/document.js";
 import { fail } from "../../errors.js";
@@ -213,10 +214,15 @@ export class BambuStudioProject {
       for (const resource of model.resources)
         if (
           resource.kind === "object" &&
-          resource.mesh?.bambuTriangleColors?.some(
-            (slot) =>
-              slot !== undefined && (slots === undefined || slot > slots),
-          )
+          (resource.mesh?.bambuTrianglePaint?.some((paint) =>
+            [...bambuPaintSlots(paint)].some(
+              (slot) => slots === undefined || slot > slots,
+            ),
+          ) ||
+            resource.mesh?.bambuTriangleColors?.some(
+              (slot) =>
+                slot !== undefined && (slots === undefined || slot > slots),
+            ))
         )
           fail(
             "BAMBU_TRIANGLE_COLORS",

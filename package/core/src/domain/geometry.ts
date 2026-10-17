@@ -56,11 +56,9 @@ export class MeshGeometry {
     this.#data = DataSnapshot.copy({ positions, indices, properties });
   }
   static fromData(data: Mesh): MeshGeometry {
-    return new MeshGeometry(
-      data.positions,
-      data.indices,
-      data.properties,
-    ).withBambuTriangleColors(data.bambuTriangleColors);
+    return new MeshGeometry(data.positions, data.indices, data.properties)
+      .withBambuTriangleColors(data.bambuTriangleColors)
+      .withBambuTrianglePaint(data.bambuTrianglePaint);
   }
   static fromBuffers(
     positions: NumericArray,
@@ -76,8 +74,22 @@ export class MeshGeometry {
       this.#data.indices,
       this.#data.properties,
     );
+    geometry.#data.bambuTrianglePaint = DataSnapshot.copy(
+      this.#data.bambuTrianglePaint,
+    );
     if (colors !== undefined)
       geometry.#data.bambuTriangleColors = DataSnapshot.copy(colors);
+    return geometry;
+  }
+  /** Copies a triangle-aligned Bambu painting forest without changing geometry. */
+  withBambuTrianglePaint(paint: Mesh["bambuTrianglePaint"]): MeshGeometry {
+    const geometry = new MeshGeometry(
+      this.#data.positions,
+      this.#data.indices,
+      this.#data.properties,
+    ).withBambuTriangleColors(this.#data.bambuTriangleColors);
+    if (paint !== undefined)
+      geometry.#data.bambuTrianglePaint = DataSnapshot.copy(paint);
     return geometry;
   }
   get vertexCount(): number {
@@ -100,6 +112,11 @@ export class MeshGeometry {
         i,
       );
     if (transform.determinant < 0) {
+      if (this.#data.bambuTrianglePaint?.some((p) => typeof p === "object"))
+        fail(
+          "BAMBU_PAINT_TRANSFORM",
+          "Reflected painted geometry is unsupported; use an instance transform",
+        );
       // A reflected solid keeps its outward orientation. Corner values follow their vertices;
       // undefined p2/p3 must remain undefined so object/p1 inheritance stays intact.
       const indices = Array.from(this.#data.indices);
@@ -108,17 +125,17 @@ export class MeshGeometry {
       const properties = this.#data.properties?.map((p) =>
         p ? { ...p, p2: p.p3, p3: p.p2 } : undefined,
       );
-      return new MeshGeometry(
-        positions,
-        indices,
-        properties,
-      ).withBambuTriangleColors(this.#data.bambuTriangleColors);
+      return new MeshGeometry(positions, indices, properties)
+        .withBambuTriangleColors(this.#data.bambuTriangleColors)
+        .withBambuTrianglePaint(this.#data.bambuTrianglePaint);
     }
     return new MeshGeometry(
       positions,
       this.#data.indices,
       this.#data.properties,
-    ).withBambuTriangleColors(this.#data.bambuTriangleColors);
+    )
+      .withBambuTriangleColors(this.#data.bambuTriangleColors)
+      .withBambuTrianglePaint(this.#data.bambuTrianglePaint);
   }
   toData(): Mesh {
     return DataSnapshot.copy(this.#data);

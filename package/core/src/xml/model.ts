@@ -17,6 +17,7 @@ import type {
   Resource,
   Transform,
   TriangleProperties,
+  BambuTrianglePaint,
 } from "../model/types.js";
 import {
   attr,
@@ -125,6 +126,7 @@ function readObject(node: XmlNode): ObjectResource {
   const indices: number[] = [];
   const properties: (TriangleProperties | undefined)[] = [];
   const bambuTriangleColors: (number | undefined)[] = [];
+  const bambuTrianglePaint: (BambuTrianglePaint | undefined)[] = [];
   vertices.children.forEach((v, i) => {
     checkNode(v, plain("x", "y", "z"), []);
     positions.set(
@@ -143,7 +145,9 @@ function readObject(node: XmlNode): ObjectResource {
       numberAttr(t, "v2")!,
       numberAttr(t, "v3")!,
     );
-    bambuTriangleColors.push(readBambuPaint(attr(t, "paint_color")));
+    const paint = readBambuPaint(attr(t, "paint_color"));
+    bambuTriangleColors.push(typeof paint === "number" ? paint : undefined);
+    bambuTrianglePaint.push(typeof paint === "object" ? paint : undefined);
     const p = {
       pid: numberAttr(t, "pid", false),
       p1: numberAttr(t, "p1", false),
@@ -161,6 +165,9 @@ function readObject(node: XmlNode): ObjectResource {
       positions,
       indices,
       properties: properties.some(Boolean) ? properties : undefined,
+      bambuTrianglePaint: bambuTrianglePaint.some((p) => p !== undefined)
+        ? bambuTrianglePaint
+        : undefined,
       bambuTriangleColors: bambuTriangleColors.some((v) => v !== undefined)
         ? bambuTriangleColors
         : undefined,
@@ -320,7 +327,10 @@ export function serializeModel(model: Model): string {
               v2: mesh.indices[i + 1],
               v3: mesh.indices[i + 2],
               ...mesh.properties?.[i / 3],
-              paint_color: writeBambuPaint(mesh.bambuTriangleColors?.[i / 3]),
+              paint_color: writeBambuPaint(
+                mesh.bambuTrianglePaint?.[i / 3] ??
+                  mesh.bambuTriangleColors?.[i / 3],
+              ),
             }),
           );
         shape = element(

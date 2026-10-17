@@ -113,6 +113,33 @@ const plates = inspection.plates;
 `MeshGeometry.withBambuTriangleColors(slots)` copies a triangle-aligned array of
 1-based project filament slots. `undefined` inherits the part assignment.
 The model reader/writer supports Bambu `paint_color` unsplit leaves (1–255);
-recursive subdivision painting remains an explicit unsupported error. The Bambu
+recursive subdivision painting is supported with `MeshGeometry.withBambuTrianglePaint`. The Bambu
 project checks painted slots against its profile. This is vendor data, separate
 from standard Materials color groups. No GUI slicing or physical printing was verified.
+
+
+## Recursive facet painting
+
+`BambuTrianglePaint` is a 1-based filament slot or a node `{ split, side, children }`.
+`split` is 1, 2 or 3; `side` is 0, 1 or 2 (0 for three-side splits).
+Children follow TriangleSelector geometric order; `undefined` leaves inherit the part.
+The nibble codec owns Bambu wire order. Applications must not encode XML strings.
+Paint forests align with original triangles and cannot conflict with unsplit slots.
+Slot checks include every nested leaf. Trees are bounded to depth 64 and 1,000,000 nodes per face.
+
+`BambuFacetPainting.sample(mesh, sampler, { maxEdgeLength, maxDepth?, maxNodes? })`
+creates a forest by sampling logical subfaces. The length uses caller geometry units;
+printer scale, resolution and filament selection remain caller-owned. Constant regions
+collapse to one leaf. Geometry positions and indices are unchanged. Sampling is bounded
+by a total node budget, and rejects incomplete or nonfinite geometry and exhausted limits.
+A reflection applied directly to recursively painted geometry is explicitly unsupported;
+use model/build transforms instead. Existing uniform painting remains compatible.
+
+Validation performed: focused wire-order, malformed tree, ownership, unchanged geometry,
+project slot checks; user-provided 8-vertex/12-triangle cube **mesh/paint data only**
+round-tripped with four `paint_color` strings unchanged. The sample's complete Bambu
+metadata package is not supported by the strict reader; no claim of full project import.
+No GUI slicing or physical printing was verified. The private user sample is not redistributed.
+Format reference: official BambuStudio TriangleSelector::serialize and FacetsAnnotation.
+
+`BambuFacetPainting.visit(mesh, forest, visitor)` visits logical color patches for previews without adding any document mesh vertices.

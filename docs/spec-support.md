@@ -57,4 +57,4 @@
 - Chromium에서 Node globals 없이 읽기/쓰기를 실행하고 Web Worker에서도 동일 경로를 검증합니다.
 - 기존 Snowfiy의 `snowfiy-curated-16-three-plates.3mf`를 실제로 읽고 재저장한 뒤 다시 읽었습니다(2 model parts, 48 build items, 진단 오류 없음). 다른 네 프로젝트의 전체 출력 파일이나 Bambu Studio GUI 로딩은 별도 검증 대상입니다.
 
-Unsplit Bambu triangle painting can be read/authored via `MeshGeometry.withBambuTriangleColors`; subdivided paint trees remain unsupported. `ThreeMFBuilder` part `vertexColors` maps sRGB hex colors to standard Materials corner indices (not automatic printer filament selection).
+Bambu triangle painting supports unsplit slots via `MeshGeometry.withBambuTriangleColors` and recursive facet trees via `withBambuTrianglePaint`. Paint subdivision does not add mesh vertices or triangles. This is Bambu vendor data, separate from standard Core/Materials. `ThreeMFBuilder` part `vertexColors` maps sRGB hex colors to standard Materials corner indices (not automatic printer filament selection).
