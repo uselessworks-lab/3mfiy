@@ -6,6 +6,11 @@ type Point = readonly [number, number, number];
 export interface BambuPaintingOptions {
   /** Caller-owned model units, normally millimeters. */
   maxEdgeLength: number;
+  /** Optional proof that this entire patch has one slot (e.g. an atlas range query). */
+  uniform?: (
+    points: readonly Point[],
+    triangle: number,
+  ) => { slot: number | undefined } | undefined;
   maxDepth?: number;
   maxNodes?: number;
 }
@@ -151,6 +156,19 @@ export class BambuFacetPainting {
           pa = position(a),
           pb = position(b),
           pc = position(c);
+        const constant = options.uniform?.([pa, pb, pc], face);
+        if (constant !== undefined) {
+          const slot = constant.slot;
+          if (
+            slot !== undefined &&
+            (!Number.isInteger(slot) || slot < 1 || slot > 255)
+          )
+            fail(
+              "BAMBU_PAINT",
+              "Uniform patch must return a filament slot 1..255",
+            );
+          return slot;
+        }
         if (
           Math.max(squared(pa, pb), squared(pb, pc), squared(pc, pa)) <=
           maxEdgeLength ** 2

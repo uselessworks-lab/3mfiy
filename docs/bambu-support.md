@@ -143,3 +143,5 @@ No GUI slicing or physical printing was verified. The private user sample is not
 Format reference: official BambuStudio TriangleSelector::serialize and FacetsAnnotation.
 
 `BambuFacetPainting.visit(mesh, forest, visitor)` visits logical color patches for previews without adding any document mesh vertices.
+
+Sampling options may supply a `uniform(points, triangle)` oracle returning `{slot}` only when the entire logical patch is proven uniform; `undefined` requests normal refinement. Atlas range queries can avoid work on constant regions without losing small markings. The caller owns this proof.
