@@ -99,7 +99,7 @@ export class BambuFacetPainting {
     ) => number | undefined,
     options: BambuPaintingOptions,
   ): readonly (BambuTrianglePaint | undefined)[] {
-    const { maxEdgeLength, maxDepth = 14, maxNodes = 1000000 } = options;
+    const { maxEdgeLength, maxDepth = 24, maxNodes = 1000000 } = options;
     if (
       !Number.isFinite(maxEdgeLength) ||
       maxEdgeLength <= 0 ||
@@ -170,21 +170,25 @@ export class BambuFacetPainting {
         }
         if (depth >= maxDepth)
           fail("BAMBU_PAINT", "Painting depth budget exceeded");
-        const ab = midpoint(a, b),
-          bc = midpoint(b, c),
-          ca = midpoint(c, a),
-          children = [
-            [a, ab, ca],
-            [ab, b, bc],
-            [bc, c, ca],
-            [ab, bc, ca],
-          ].map((child) => paint(child, depth + 1));
+        // Bisect the longest logical edge. Four-way subdivision repeatedly
+        // over-refines narrow source facets even when their area is tiny.
+        const lengths = [squared(pa, pb), squared(pb, pc), squared(pc, pa)],
+          edge = lengths.indexOf(Math.max(...lengths)),
+          side = (edge + 2) % 3;
+        const first = bary[side]!,
+          second = bary[(side + 1) % 3]!,
+          third = bary[(side + 2) % 3]!,
+          m = midpoint(second, third);
+        const children = [
+          [first, second, m],
+          [m, third, first],
+        ].map((child) => paint(child, depth + 1));
         if (
-          children.every((child) => child === children[0]) &&
+          children[0] === children[1] &&
           (children[0] === undefined || typeof children[0] === "number")
         )
           return children[0];
-        return { split: 3, side: 0, children };
+        return { split: 1, side: side as 0 | 1 | 2, children };
       }
       result.push(
         paint(
