@@ -11,6 +11,6 @@ npm run cli -- inspect path/to/model.3mf
 npm run cli -- validate path/to/model.3mf --topology
 ```
 
-Output is JSON. Invalid input produces an error and a nonzero exit status. The CLI does not generate geometry, slice models, or submit prints. See the [library README](../../package/core/README.md) for document authoring.
+Output is JSON. Invalid input produces an error and a nonzero exit status. The CLI does not generate geometry, slice models, or submit prints. See the [library README](../../package/README.md) for document authoring.
 
 Licensed under [MIT](../../LICENSE).

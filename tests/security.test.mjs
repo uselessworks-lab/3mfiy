@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { unzipSync, zipSync, strToU8, strFromU8 } from "fflate";
-import { read3mf, write3mf } from "../package/core/dist/opc/package.js";
-import { NS } from "../package/core/dist/index.js";
-import { validateDocument } from "../package/core/dist/validate.js";
+import { read3mf, write3mf } from "../dist/opc/package.js";
+import { NS } from "../dist/index.js";
+import { validateDocument } from "../dist/validate.js";
 import { basic } from "./fixtures.mjs";
 const rewrite = (fn) => {
   const files = unzipSync(write3mf(basic()));
@@ -128,6 +128,17 @@ test("ZIP path traversal, aliases and missing content types are rejected", () =>
       ),
     (e) => e.code === "PART_PATH",
   );
+});
+
+test("Bambu picture directory ZIP spaces round-trip as encoded OPC URIs without duplicate aliases", () => {
+  const doc=basic();
+  doc.attachments=[{path:'/Auxiliaries/Model%20Pictures/cover.png',contentType:'image/png',data:new Uint8Array([1,2,3])}];
+  const bytes=write3mf(doc),files=unzipSync(bytes);
+  assert.deepEqual(files['Auxiliaries/Model Pictures/cover.png'],new Uint8Array([1,2,3]));
+  assert.match(strFromU8(files['[Content_Types].xml']),/Model%20Pictures/);
+  assert.equal(read3mf(bytes).document.attachments[0].path,'/Auxiliaries/Model%20Pictures/cover.png');
+  files['Auxiliaries/Model%20Pictures/cover.png']=new Uint8Array([4]);
+  assert.throws(()=>read3mf(zipSync(files)),error=>error.code==='DUPLICATE_PART');
 });
 test("XML complexity limits are enforced", () => {
   assert.throws(

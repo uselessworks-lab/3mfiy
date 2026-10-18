@@ -104,7 +104,7 @@ export function readZip(
       fail("ZIP_FORMAT", "Inconsistent ZIP entry data");
     if (method === 0 && compressed !== size)
       fail("ZIP_FORMAT", "Stored size mismatch");
-    const key = pathKey("/" + (name.endsWith("/") ? name.slice(0, -1) : name));
+    const key = pathKey("/" + (name.endsWith("/") ? name.slice(0, -1) : name).replace(/ /g,"%20"));
     if (names.has(key)) fail("DUPLICATE_PART", `Duplicate ZIP entry ${name}`);
     names.add(key);
     total += size;
@@ -122,7 +122,7 @@ export function readZip(
       const bytes = files[name];
       if (!bytes || bytes.length !== record.size || crc32(bytes) !== record.crc)
         fail("ZIP_INTEGRITY", `CRC or size mismatch: ${name}`);
-      result.set("/" + name, bytes);
+      result.set("/" + name.replace(/ /g,"%20"), bytes);
     }
     return result;
   } catch (e) {
@@ -137,6 +137,6 @@ export function writeZip(
   const entries: Zippable = Object.create(null) as Zippable;
   // Fixed ZIP timestamp makes repeated writes deterministic. Dates belong in metadata.
   for (const [path, data] of [...parts].sort(([a], [b]) => a.localeCompare(b)))
-    entries[path.slice(1)] = [data, { mtime: new Date(1980, 0, 1) }];
+    entries[path.slice(1).replace(/%20/gi," ")] = [data, { mtime: new Date(1980, 0, 1) }];
   return zipSync(entries, { level: options.compressionLevel ?? 6 });
 }

@@ -17,11 +17,11 @@ npm run test:browser
 
 ## Design and changes
 
-Keep format behavior in `package/core`, with the public OOP contracts described in [Architecture](docs/architecture.md). Applications consume the public package API. Bambu-specific configuration stays in the `@uselessworks/3mfiy/bambu` entrypoint. Printer settings, filament profiles, placement, and geometry generation belong to the caller.
+Keep format behavior in `package`, with the public OOP contracts described in [Architecture](docs/architecture.md). Applications consume the public package API. Bambu-specific configuration stays in the `@uselessworks/3mfiy/bambu` entrypoint. Printer settings, filament profiles, placement, and geometry generation belong to the caller.
 
 For a bug, provide the smallest reproducer and a meaningful regression check. Tests should protect user-visible behavior or an invariant; test counts and class/method existence are not goals. For a format extension, include its specification reference and update [3MF support](docs/spec-support.md) and, where relevant, [Bambu support](docs/bambu-support.md). Unsupported data must not disappear silently.
 
-Generated `dist/`, package archives, downloads, and artifacts are ignored. Keep `package-lock.json` in source control. For packaging changes, check both the root Git-install package and `package/core`; they expose the same two entrypoints.
+Generated `dist/`, package archives, downloads, and artifacts are ignored. Keep `package-lock.json` in source control. For packaging changes, check the root package archive and its Git-install entrypoints.
 
 Describe the problem, the final behavior, relevant checks, and compatibility effects in pull requests. Write README files in English.
 

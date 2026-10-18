@@ -1,5 +1,9 @@
 # 3MF 지원 현황
 
+Bambu namespace를 선언한 모델의 제한된 unqualified MakerWorld metadata는
+vendor 예외로 보존한다. Core 표준 metadata의 이름 규칙을 확대한 것이 아니며,
+지원 키와 제약은 [Bambu 지원 표](bambu-support.md#세부-지원-표)를 따른다.
+
 검토일: 2026-09-26. 여기서 **지원**은 타입 모델·읽기·쓰기·해당 필드의 구조 검증을 뜻합니다. 렌더링, 물리적 출력, 슬라이싱, 전체 표준 적합성 인증을 의미하지 않습니다. 확장 전체는 아래 세부 기능 중 일부만 구현되어 있으므로 **부분 지원**입니다.
 
 공식 [스펙 목록](https://3mf.io/spec/)과 다음 고정 리비전을 기준으로 구현했습니다. 목록의 안정판 표시와 저장소 문서 헤더의 버전이 다른 경우를 구분합니다.
@@ -13,6 +17,7 @@
 | 범위               | 기능                                                         | 읽기                   | 쓰기        | 검증/제약                                                                                   |
 | ------------------ | ------------------------------------------------------------ | ---------------------- | ----------- | ------------------------------------------------------------------------------------------- |
 | Core §2, OPC       | ZIP32 store/deflate, content types, root/part relationships  | 지원                   | 지원        | CRC, 중복 경로, 경로 탈출, 참조, 크기 제한. ZIP64/분할/암호화 ZIP 미지원                    |
+| Core §2, OPC       | 공백 포함 ZIP 첨부 이름과 `%20` part URI | 지원 | 지원 | URI는 인코딩하고 ZIP 파일명은 공백으로 저장. 두 표현의 중복 alias 거부 |
 | Core §3            | 6종 단위, xml:lang, 12수 affine transform                    | 지원                   | 지원        | 유한 수·가역성. 단위 자동 변환 없음                                                         |
 | Core §3.4          | 모델 메타데이터, preserve/type, object/item metadatagroup    | 지원                   | 지원        | 표준 이름/네임스페이스 선언·중복 확인. metadata type 값의 XSD 타입별 내용 검증은 미지원     |
 | Core §3.4          | resources/build, 복수 인스턴스, partnumber                   | 지원                   | 지원        | 모델별 ID, 대상 종류, 참조 유효성                                                           |
@@ -37,7 +42,7 @@
 | Secure Content     | 전체                                                         | 미지원                 | 미지원      | 필수 확장 URI면 거부                                                                        |
 | Volumetric         | 전체                                                         | 미지원                 | 미지원      | 필수 확장 URI면 거부                                                                        |
 | Toolpath           | 전체                                                         | 미지원                 | 미지원      | 2026-09-17 목록에 추가된 확장. 필수 URI면 거부                                              |
-| Bambu 비표준       | 통합/개별 profile, plate 설정/PNG, extruder, assembly        | 부분 typed + 원본 보존 | 어댑터 지원 | [세부 지원 감사](bambu-support.md). slice 결과/분할 painting/전체 config 해석과 GUI 검증 미지원  |
+| Bambu 비표준       | 통합/개별 profile, plate 설정/PNG, extruder, assembly        | 부분 typed + 원본 보존 | 어댑터 지원 | [세부 지원 감사](bambu-support.md). slice 결과/전체 config 해석과 GUI 검증 미지원  |
 
 ## 읽기·재저장 정책
 

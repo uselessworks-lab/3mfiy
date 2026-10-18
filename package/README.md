@@ -1,8 +1,14 @@
 # @uselessworks/3mfiy
 
+Bambu Project 이미지 첨부 경로는 `/Auxiliaries/Model%20Pictures/cover.png`처럼 인코딩한 URI를 사용합니다. ZIP에는 `Model Pictures`로 저장하며 읽을 때 같은 URI로 복원합니다.
+
 3mfiy creates, reads, and edits 3MF files for 3D printing. Model generators such as Formify and Flexify can use it to package meshes, parts, materials, and placements into a single `.3mf` file for a slicer. Bambu Studio support adds plates, filament assignments, printer and print settings, embedded presets, and thumbnails.
 
 Runs in Node.js 22+, browsers, and Web Workers, with TypeScript declarations included.
+
+Bambu namespace를 선언한 모델은 `ThreeMFModel.setMetadata()` 또는 생성자의
+`metadata`로 MakerWorld 모델/프로필 연결 키를 보존할 수 있습니다. 지원 이름과
+제약은 [Bambu 지원 표](../docs/bambu-support.md#세부-지원-표)를 따릅니다.
 
 ## Installation
 
@@ -137,6 +143,8 @@ Bambu authoring regenerates model settings and header-only slice info. It is for
 ## Scope and runtime
 
 Core, Materials and Production support is documented in the [3MF support matrix](https://github.com/uselessworks-lab/3mfiy/blob/main/docs/spec-support.md); partial support does not imply full conformance. Unsupported model XML fails explicitly instead of being silently discarded. ZIP32/UTF-8 input has configurable size/complexity limits. Geometry/topology is validated without repair. Input is processed in memory; use a Worker for large files. Browser output is a `Uint8Array` that can be wrapped in a `Blob`; filesystem and download policy belong to the application.
+
+Mesh XML leaves are validated and consumed directly into numeric buffers to avoid retaining a second full XML tree for large meshes. Existing namespace, numeric precision and size/complexity checks still apply.
 
 ## License
 

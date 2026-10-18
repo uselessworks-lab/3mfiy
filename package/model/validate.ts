@@ -39,6 +39,12 @@ const metadataNames = new Set([
   "ModificationDate",
   "Application",
 ]);
+// Bambu Studio uses these unqualified vendor keys in its model XML.
+// Recognize only documented keys, and only with the vendor namespace declared.
+const bambuMetadataNames = new Set([
+  "DesignModelId", "DesignProfileId", "DesignRegion", "DesignerUserId",
+  "ProfileTitle", "ProfileUserId", "ProfileUserName", "Region", "DesignerCover", "ProfileCover",
+]);
 
 /** One validation run owns its lookup indexes, diagnostics and component graph. */
 export class ModelValidator {
@@ -162,7 +168,8 @@ export class ModelValidator {
       const segments = m.name.split(":");
       if (
         segments.length === 1
-          ? !metadataNames.has(m.name)
+          ? !metadataNames.has(m.name) && !(bambuMetadataNames.has(m.name) &&
+              Object.values(model.namespaces ?? {}).includes("http://schemas.bambulab.com/package/2021"))
           : segments.length !== 2 ||
             !model.namespaces?.[segments[0]!] ||
             !/^[A-Za-z_][\w.-]*$/.test(segments[0]!) ||

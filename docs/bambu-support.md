@@ -1,5 +1,9 @@
 # Bambu Studio 지원 감사
 
+Project 갤러리의 `Auxiliaries/Model Pictures/`·`Profile Pictures/` 첨부를 지원한다.
+API part URI에는 `%20`을 사용하며 ZIP에는 Studio가 읽는 실제 공백 폴더명을 저장한다.
+`DesignerCover`·`ProfileCover`의 파일명과 PNG 바이트는 호출자가 제공한다.
+
 검토일: 2026-09-26. 표준 3MF와 Bambu 프로젝트 형식은 별개입니다. 이 어댑터는 **슬라이싱 전 편집용 프로젝트 생성**을 지원하며, Studio가 저장하는 모든 데이터를 이해하거나 슬라이싱 결과를 생성하는 기능은 아닙니다.
 
 이번 점검에서는 로컬 Bambu Studio의 `src/libslic3r/Format/bbs_3mf.cpp/.hpp`, `Config.cpp`, `PresetBundle.cpp`, `Preset.cpp`, `Model.cpp`, `GUI/Widgets/FilamentBitmapUtils.cpp`를 읽고, Formify/Runify/Spookify/Snowfiy/Flexify의 exporter와 대조했습니다. 공개 참고 원문은 [Bambu Studio importer/exporter](https://github.com/bambulab/BambuStudio/blob/master/src/libslic3r/Format/bbs_3mf.cpp), [configuration serialization](https://github.com/bambulab/BambuStudio/blob/master/src/libslic3r/Config.cpp), [preset bundle](https://github.com/bambulab/BambuStudio/blob/master/src/libslic3r/PresetBundle.cpp)입니다. 로컬 Studio 소스는 커스텀 변경이 포함된 체크아웃이므로 공개 master와 버전별 차이가 있을 수 있습니다.
@@ -18,6 +22,14 @@
 | 배열 크기에 대한 명시적 정책 부족                                                 | identity/color 벡터만 slot 수에 맞추고 variant/self-index/nozzle/flush 데이터는 원형 보존. 변경이 필요한 프로필은 호출자가 준비              |
 
 ## 세부 지원 표
+
+`ThreeMFModel.setMetadata()`와 생성자의 `metadata`는 MakerWorld 연결 키
+`DesignModelId`, `DesignProfileId`, `DesignRegion`, `DesignerUserId`, `ProfileTitle`,
+`ProfileUserId`, `ProfileUserName`, `Region`, `DesignerCover`, `ProfileCover`를 읽기/쓰기에서 보존한다.
+모델은 `http://schemas.bambulab.com/package/2021` namespace를 선언해야 한다
+(prefix는 고정하지 않는다). 그 외 알 수 없는 unqualified 키는 계속 거절한다.
+이 ID는 게시물 URL의 숫자 ID와 다르며 호출자가 검증된 값을 제공한다.
+연결 키 지원은 MakerWorld 실적 귀속이나 이미지 파일의 존재를 보증하지 않는다.
 
 | 기능                                                                                                                | 읽기                                           | 생성/변경               | 범위·제약                                                                                                                                         |
 | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -40,6 +52,7 @@
 | G-code/툴패스/AMS 전송·실제 tray 매핑                                                                               | 원본 보존                                      | 생성·검증 미지원        | `BambuStudioProject.toDocument()`는 재슬라이싱하지 않음                                                                                           |
 | no-light/top/pick/pattern thumbnail 및 bbox                                                                         | 원본 보존                                      | typed API 미지원        | `BambuStudioProject.inspect().plates`는 이 참조가 있으면 명시적 미지원 오류. generic `ThreeMFDocument.read()`는 첨부를 유지                       |
 | `filament_sequence.json`, layer ranges/heights, custom G-code, brim ears, cut information, assembly tree/step/model | 원본 보존                                      | typed 생성·해석 미지원  | `Document.attachments`로 이미 준비된 원본 파일 삽입 가능                                                                                          |
+| triangle paint_color | unsplit·recursive facet tree 지원 | typed 생성·해석 지원 | `withBambuTriangleColors` / `withBambuTrianglePaint`; 원래 mesh 정점·삼각형 보존 |
 | triangle paint_supports/paint_seam/face_property                                                                    | 미지원 XML 오류                                | 미지원                  | 지원하지 않는 model XML을 조용히 삭제하지 않음                                                                                                    |
 | emboss/text/font 등 config 안의 vendor 구조                                                                         | XML 첨부 원본 보존                             | typed 재구성 미지원     | 기존 config를 일반 import/save 하는 경우만 보존                                                                                                   |
 
@@ -145,3 +158,7 @@ Format reference: official BambuStudio TriangleSelector::serialize and FacetsAnn
 `BambuFacetPainting.visit(mesh, forest, visitor)` visits logical color patches for previews without adding any document mesh vertices.
 
 Sampling options may supply a `uniform(points, triangle)` oracle returning `{slot}` only when the entire logical patch is proven uniform; `undefined` requests normal refinement. Atlas range queries can avoid work on constant regions without losing small markings. The caller owns this proof.
+
+The painting reader consumes triangle XML leaves directly into numeric and paint
+buffers, retaining the bounded-memory mesh parsing path. Root package entrypoints,
+MakerWorld metadata and encoded gallery URIs retain their existing contracts.

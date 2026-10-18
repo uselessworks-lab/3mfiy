@@ -3,17 +3,15 @@ import assert from "node:assert/strict";
 import {
   MeshGeometry,
   ThreeMFDocument,
+  ThreeMFBuilder,
   Transform3D,
-} from "../package/core/dist/index.js";
+} from "../dist/index.js";
 import {
   BambuFacetPainting,
   BambuProfile,
   BambuStudioProject,
-} from "../package/core/dist/adapters/bambu.js";
-import {
-  readBambuPaint,
-  writeBambuPaint,
-} from "../package/core/dist/xml/bambu-paint.js";
+} from "../dist/adapters/bambu.js";
+import { readBambuPaint, writeBambuPaint } from "../dist/xml/bambu-paint.js";
 const triangle = new MeshGeometry(
   [0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 4],
   [0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3],
@@ -112,5 +110,66 @@ test("paint budgets, conflicting assignments and nested missing filament slots a
         ],
       },
     ]),
+  );
+});
+
+// Vertex colors have no coverage in the original painting tests; protect the
+// public corner assignment, resource ordering and request ownership contract.
+test("builder snapshots vertex colors and round-trips corner assignments", () => {
+  const colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFFFF"];
+  const builder = new ThreeMFBuilder().addObject({
+    parts: [{ mesh: triangle, vertexColors: colors }],
+  });
+  colors[0] = "#000000";
+  const { document } = builder.build();
+  const restored = ThreeMFDocument.read(document.write());
+  const model = restored.toData().models[0];
+  const group = model.resources.find((r) => r.kind === "colorGroup");
+  const mesh = model.resources.find((r) => r.kind === "object" && r.mesh);
+  assert.deepEqual(group.colors, ["#FF0000", "#00FF00", "#0000FF", "#FFFFFF"]);
+  assert.ok(model.resources.indexOf(group) < model.resources.indexOf(mesh));
+  assert.deepEqual(mesh.mesh.properties[0], {
+    pid: group.id,
+    p1: 0,
+    p2: 2,
+    p3: 1,
+  });
+  assert.throws(() =>
+    ThreeMFDocument.create3mf([
+      { parts: [{ mesh: triangle, vertexColors: ["#FF0000"] }] },
+    ]),
+  );
+});
+
+test("unsplit filament colors survive snapshots and reflected geometry", () => {
+  const slots = [1, 2, undefined, 1];
+  const mesh = triangle.withBambuTriangleColors(slots);
+  slots[0] = 255;
+  const reflected = MeshGeometry.fromData(mesh.toData()).transformed(
+    new Transform3D([-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]),
+  );
+  const { document } = ThreeMFDocument.create3mf([
+    { parts: [{ mesh: reflected }] },
+  ]);
+  const restored = ThreeMFDocument.read(document.write())
+    .toData()
+    .models[0].resources.find((r) => r.kind === "object" && r.mesh).mesh;
+  assert.deepEqual(restored.bambuTriangleColors, [1, 2, undefined, 1]);
+  assert.equal(
+    mesh.withBambuTriangleColors(undefined).toData().bambuTriangleColors,
+    undefined,
+  );
+  const painted = triangle.withBambuTrianglePaint([
+    { split: 1, side: 0, children: [1, 2] },
+    undefined,
+    undefined,
+    undefined,
+  ]);
+  assert.throws(
+    () =>
+      painted.transformed(
+        new Transform3D([-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]),
+      ),
+    (error) => error.code === "BAMBU_PAINT_TRANSFORM",
   );
 });

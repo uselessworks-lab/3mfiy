@@ -3,7 +3,7 @@
 공개 API는 `ThreeMFDocument`, `ThreeMFModel`, resource 계층, geometry/transform 값 객체, Bambu 프로젝트 객체로 구성됩니다. 두 package entrypoint에는 독립적인 생성·읽기·쓰기 함수 export가 없습니다. `create3mf`라는 생성 동작은 `ThreeMFDocument.create3mf()`로 제공하며 결과의 document도 클래스 인스턴스입니다.
 
 ```text
-package/core/src/
+package/
   domain/       문서·모델·리소스 소유권, 값 객체, 편집 메서드
   model/        생성 builder, 내부 DTO, enum, 모델 검증 실행 상태
   extensions/   ResourceCodec<T> 및 재질 codec, Production 처리
@@ -45,5 +45,7 @@ builder의 다음 `build()`는 이전 결과를 변경하지 않습니다. ID를
 `ResourceCodec<T>`가 공통 namespace/XML shape/ID 검사를 수행하고 여섯 codec이 `decode`/`encode`/`count`를 override합니다. URI+local name과 resource kind로 codec을 선택하며 prefix에 의존하지 않습니다. BaseMaterials는 Core namespace 소속이고 Production은 attribute 확장으로 별도 처리합니다.
 
 `DocumentValidator`와 `ModelValidator`는 내부 서비스입니다. 모델/리소스 인덱스·UUID·참조 그래프·진단을 실행마다 분리하고 OPC까지 검증합니다. 공개 호출은 `document.validate()`/`assertValid()`입니다. XML/ZIP의 순수 보조 함수는 내부 구현에 한정합니다.
+
+메쉬 XML의 vertex/triangle은 닫히는 즉시 기존 속성·내용 검사를 수행하고 숫자 버퍼에 적재합니다. 구조 XML 트리와 수백만 leaf 객체를 함께 보관하지 않습니다. namespace, 중복 container, unsupported markup, 숫자 정밀도, XML 노드/깊이와 ZIP 크기 한도는 기존 계약을 유지합니다.
 
 문자열 enum과 template literal 타입은 정확한 wire 문자열과 enum 멤버를 함께 허용합니다. `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`를 활성화했습니다. 확장을 추가할 때는 DTO union, 리소스 클래스, codec, validator, 지원 표를 함께 갱신해야 합니다. 내부 codec 등록만으로 임의 XML이 지원된다고 주장하지 않습니다.

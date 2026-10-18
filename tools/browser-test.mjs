@@ -15,11 +15,17 @@ const cached = existsSync(cache)
   : undefined;
 const { outputFiles } = await build({
   stdin: {
-    contents: `import {ThreeMFDocument,ThreeMFBuilder,MeshGeometry,ThreeMFUnit} from './package/core/dist/index.js';
-import {BambuStudioProject,BambuProfile,BambuPlate} from './package/core/dist/adapters/bambu.js';
+    contents: `import {ThreeMFDocument,ThreeMFBuilder,MeshGeometry,ThreeMFUnit} from './dist/index.js';
+import {BambuStudioProject,BambuProfile,BambuPlate,BambuFacetPainting} from './dist/adapters/bambu.js';
 export function exercise(){
  if(typeof process!=='undefined'||typeof Buffer!=='undefined')throw Error('Unexpected Node globals');
  const geometry=new MeshGeometry([0,0,0,1,0,0,0,1,0,0,0,1],[0,2,1,0,1,3,0,3,2,1,2,3]);
+ const forest=BambuFacetPainting.sample(geometry,([x])=>x<0.4?1:2,{maxEdgeLength:0.4});
+ const painted=geometry.withBambuTrianglePaint(forest);
+ const paintedDocument=ThreeMFDocument.create3mf([{parts:[{mesh:painted}]}]).document;
+ const reopenedPaint=ThreeMFDocument.read(paintedDocument.write()).toData().models[0].resources.find(r=>r.kind==='object'&&r.mesh).mesh;
+ if(reopenedPaint.positions.length!==12||reopenedPaint.indices.length!==12)throw Error('Painting changed geometry');
+ if(JSON.stringify(forest)!==JSON.stringify(forest.map((_,i)=>reopenedPaint.bambuTrianglePaint?.[i]??reopenedPaint.bambuTriangleColors?.[i])))throw Error('Painting browser roundtrip');
  const {document,objects}=new ThreeMFBuilder({meshPath:'/3D/mesh.model',unit:ThreeMFUnit.Millimeter}).addObject({parts:[{mesh:geometry,color:'#123456'}]}).build();
  const profile=BambuProfile.fromFilaments([{settingsId:'Browser PLA',color:'#123456'}]);
  const project=new BambuStudioProject(document,{applicationVersion:'2.0.0',profile});

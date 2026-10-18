@@ -1,21 +1,21 @@
-import { ThreeMFDocument } from "../package/core/dist/index.js";
+import { ThreeMFDocument } from "../dist/index.js";
 import {
   BambuStudioProject,
   BambuProfile,
   BambuPlate,
-} from "../package/core/dist/adapters/bambu.js";
+} from "../dist/adapters/bambu.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { strFromU8, strToU8 } from "fflate";
 import { createData3mf } from "./fixtures.mjs";
-import { write3mf, read3mf } from "../package/core/dist/opc/package.js";
-import { REL } from "../package/core/dist/index.js";
-import { withBambuProject } from "../package/core/dist/adapters/bambu/project.js";
+import { write3mf, read3mf } from "../dist/opc/package.js";
+import { REL } from "../dist/index.js";
+import { withBambuProject } from "../dist/adapters/bambu/project.js";
 import {
   createBambuProjectSettings,
   readBambuProfiles,
-} from "../package/core/dist/adapters/bambu/profiles.js";
-import { readBambuPlates } from "../package/core/dist/adapters/bambu/plates.js";
+} from "../dist/adapters/bambu/profiles.js";
+import { readBambuPlates } from "../dist/adapters/bambu/plates.js";
 import { tetrahedron, uuidFactory } from "./fixtures.mjs";
 function fixture() {
   const assembly = createData3mf(
