@@ -54,7 +54,7 @@ The package is being prepared for its first npm release. After publication:
 npm install @uselessworks/3mfiy
 ```
 
-Both installation paths expose the same API and runtime dependencies. For local package testing before publication, run `npm run pack:core` and install the archive in `artifacts/npm/`.
+Both installation paths expose the same API and runtime dependencies. For local package testing before publication, run `mkdir -p artifacts/npm && npm pack --workspace=package/core --pack-destination=artifacts/npm` and install the archive in `artifacts/npm/`.
 
 ## Create a 3MF document
 

@@ -46,11 +46,12 @@ Use a release tag or commit SHA in applications that need reproducible dependenc
    npm run verify
    npx playwright install chromium
    npm run test:browser
-   npm run pack:core
-   npm run pack:git
+   mkdir -p artifacts/npm artifacts/git
+   npm pack --workspace=package/core --pack-destination=artifacts/npm
+   npm pack --workspaces=false --pack-destination=artifacts/git
    ```
 
-   `pack:core` writes the registry archive to `artifacts/npm/`; `pack:git` writes the Git-root archive to `artifacts/git/`. The existing package-consumer test packs them into separate temporary directories and checks runtime imports, both export paths, TypeScript NodeNext/Bundler resolution, and browser bundling.
+   The workspace command writes the registry archive to `artifacts/npm/`; the root command writes the Git-root archive to `artifacts/git/`. The existing package-consumer test packs them into separate temporary directories and checks runtime imports, both export paths, TypeScript NodeNext/Bundler resolution, and browser bundling.
 
 4. Review the npm archive file list with `npm pack --workspace=package/core --dry-run`. Confirm the repository URL, MIT license, declarations, and current support documentation. Keep fixture/license attribution in the Git repository; test fixtures are not shipped as runtime library files.
 5. Commit the release and create a matching tag such as `v0.1.0`. Push the commit/tag and check CI.
