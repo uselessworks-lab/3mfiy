@@ -5,6 +5,7 @@ import {
   TextureFilter,
   BlendMethod,
 } from "./enums.js";
+import { bambuPaintSlots } from "./bambu-paint.js";
 import { NS } from "../constants.js";
 import { propertyCount } from "../extensions/materials.js";
 import { usesProduction } from "../extensions/production.js";
@@ -581,6 +582,46 @@ export class ModelValidator {
         rp,
         "Triangle properties array must align with triangles",
       );
+    if (mesh.bambuTriangleColors) {
+      if (mesh.bambuTriangleColors.length !== mesh.indices.length / 3)
+        this.error(
+          "BAMBU_TRIANGLE_COLORS",
+          rp,
+          "Bambu color assignments must align with triangles",
+        );
+      if (
+        mesh.bambuTriangleColors.some(
+          (slot) =>
+            slot !== undefined &&
+            (!Number.isInteger(slot) || slot < 1 || slot > 255),
+        )
+      )
+        this.error(
+          "BAMBU_TRIANGLE_COLORS",
+          rp,
+          "Bambu face filament slots must be integers from 1 to 255",
+        );
+    }
+    if (mesh.bambuTrianglePaint) {
+      if (mesh.bambuTrianglePaint.length !== mesh.indices.length / 3)
+        this.error("BAMBU_PAINT", rp, "Paint forest must align with triangles");
+      try {
+        mesh.bambuTrianglePaint.forEach((paint, i) => {
+          bambuPaintSlots(paint);
+          if (
+            paint !== undefined &&
+            mesh.bambuTriangleColors?.[i] !== undefined
+          )
+            throw Error("Conflicting face painting");
+        });
+      } catch (error) {
+        this.error(
+          "BAMBU_PAINT",
+          rp,
+          error instanceof Error ? error.message : "Invalid paint tree",
+        );
+      }
+    }
     if (r.property) property(r.property.pid, r.property.index, rp);
     for (let i = 0; i < mesh.indices.length; i += 3) {
       const a = mesh.indices[i],

@@ -42,7 +42,7 @@ vendor 예외로 보존한다. Core 표준 metadata의 이름 규칙을 확대�
 | Secure Content     | 전체                                                         | 미지원                 | 미지원      | 필수 확장 URI면 거부                                                                        |
 | Volumetric         | 전체                                                         | 미지원                 | 미지원      | 필수 확장 URI면 거부                                                                        |
 | Toolpath           | 전체                                                         | 미지원                 | 미지원      | 2026-09-17 목록에 추가된 확장. 필수 URI면 거부                                              |
-| Bambu 비표준       | 통합/개별 profile, plate 설정/PNG, extruder, assembly        | 부분 typed + 원본 보존 | 어댑터 지원 | [세부 지원 감사](bambu-support.md). slice 결과/painting/전체 config 해석과 GUI 검증 미지원  |
+| Bambu 비표준       | 통합/개별 profile, plate 설정/PNG, extruder, assembly        | 부분 typed + 원본 보존 | 어댑터 지원 | [세부 지원 감사](bambu-support.md). slice 결과/전체 config 해석과 GUI 검증 미지원  |
 
 ## 읽기·재저장 정책
 
@@ -61,3 +61,5 @@ vendor 예외로 보존한다. Core 표준 metadata의 이름 규칙을 확대�
 - 생성한 Core XML을 공식 Appendix A XSD로 검사합니다. macOS libxml2가 `maxOccurs=2147483647`을 처리하지 못하므로 테스트에서만 `unbounded`로 치환하며, 해당 수량 상한은 TS 검증기가 별도로 검사합니다. `xml:lang` import는 로컬 최소 정의로 대체합니다. 전체 Consortium conformance suite는 실행하지 않았습니다.
 - Chromium에서 Node globals 없이 읽기/쓰기를 실행하고 Web Worker에서도 동일 경로를 검증합니다.
 - 기존 Snowfiy의 `snowfiy-curated-16-three-plates.3mf`를 실제로 읽고 재저장한 뒤 다시 읽었습니다(2 model parts, 48 build items, 진단 오류 없음). 다른 네 프로젝트의 전체 출력 파일이나 Bambu Studio GUI 로딩은 별도 검증 대상입니다.
+
+Bambu triangle painting supports unsplit slots via `MeshGeometry.withBambuTriangleColors` and recursive facet trees via `withBambuTrianglePaint`. Paint subdivision does not add mesh vertices or triangles. This is Bambu vendor data, separate from standard Core/Materials. `ThreeMFBuilder` part `vertexColors` maps sRGB hex colors to standard Materials corner indices (not automatic printer filament selection).

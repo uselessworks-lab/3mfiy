@@ -56,7 +56,20 @@ export class MeshGeometry {
     this.#data = DataSnapshot.copy({ positions, indices, properties });
   }
   static fromData(data: Mesh): MeshGeometry {
-    return new MeshGeometry(data.positions, data.indices, data.properties);
+    const geometry = new MeshGeometry(
+      data.positions,
+      data.indices,
+      data.properties,
+    );
+    if (data.bambuTriangleColors !== undefined)
+      geometry.#data.bambuTriangleColors = DataSnapshot.copy(
+        data.bambuTriangleColors,
+      );
+    if (data.bambuTrianglePaint !== undefined)
+      geometry.#data.bambuTrianglePaint = DataSnapshot.copy(
+        data.bambuTrianglePaint,
+      );
+    return geometry;
   }
   static fromBuffers(
     positions: NumericArray,
@@ -64,6 +77,17 @@ export class MeshGeometry {
     options: { stride?: number; offset?: number } = {},
   ): MeshGeometry {
     return MeshGeometry.fromData(meshFromBuffers(positions, indices, options));
+  }
+  /** Owns a copy. Slot bounds and triangle alignment are checked by document validation. */
+  withBambuTriangleColors(colors: Mesh["bambuTriangleColors"]): MeshGeometry {
+    return MeshGeometry.fromData({
+      ...this.#data,
+      bambuTriangleColors: colors,
+    });
+  }
+  /** Copies a triangle-aligned Bambu painting forest without changing geometry. */
+  withBambuTrianglePaint(paint: Mesh["bambuTrianglePaint"]): MeshGeometry {
+    return MeshGeometry.fromData({ ...this.#data, bambuTrianglePaint: paint });
   }
   get vertexCount(): number {
     return this.#data.positions.length / 3;
@@ -85,6 +109,11 @@ export class MeshGeometry {
         i,
       );
     if (transform.determinant < 0) {
+      if (this.#data.bambuTrianglePaint?.some((p) => typeof p === "object"))
+        fail(
+          "BAMBU_PAINT_TRANSFORM",
+          "Reflected painted geometry is unsupported; use an instance transform",
+        );
       // A reflected solid keeps its outward orientation. Corner values follow their vertices;
       // undefined p2/p3 must remain undefined so object/p1 inheritance stays intact.
       const indices = Array.from(this.#data.indices);
@@ -93,13 +122,14 @@ export class MeshGeometry {
       const properties = this.#data.properties?.map((p) =>
         p ? { ...p, p2: p.p3, p3: p.p2 } : undefined,
       );
-      return new MeshGeometry(positions, indices, properties);
+      return MeshGeometry.fromData({
+        ...this.#data,
+        positions,
+        indices,
+        properties,
+      });
     }
-    return new MeshGeometry(
-      positions,
-      this.#data.indices,
-      this.#data.properties,
-    );
+    return MeshGeometry.fromData({ ...this.#data, positions });
   }
   toData(): Mesh {
     return DataSnapshot.copy(this.#data);

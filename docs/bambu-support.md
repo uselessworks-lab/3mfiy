@@ -52,7 +52,8 @@ API part URI에는 `%20`을 사용하며 ZIP에는 Studio가 읽는 실제 공�
 | G-code/툴패스/AMS 전송·실제 tray 매핑                                                                               | 원본 보존                                      | 생성·검증 미지원        | `BambuStudioProject.toDocument()`는 재슬라이싱하지 않음                                                                                           |
 | no-light/top/pick/pattern thumbnail 및 bbox                                                                         | 원본 보존                                      | typed API 미지원        | `BambuStudioProject.inspect().plates`는 이 참조가 있으면 명시적 미지원 오류. generic `ThreeMFDocument.read()`는 첨부를 유지                       |
 | `filament_sequence.json`, layer ranges/heights, custom G-code, brim ears, cut information, assembly tree/step/model | 원본 보존                                      | typed 생성·해석 미지원  | `Document.attachments`로 이미 준비된 원본 파일 삽입 가능                                                                                          |
-| triangle paint_color/paint_supports/paint_seam/face_property                                                        | 미지원 XML 오류                                | 미지원                  | 지원하지 않는 model XML을 조용히 삭제하지 않음                                                                                                    |
+| triangle paint_color | unsplit·recursive facet tree 지원 | typed 생성·해석 지원 | `withBambuTriangleColors` / `withBambuTrianglePaint`; 원래 mesh 정점·삼각형 보존 |
+| triangle paint_supports/paint_seam/face_property                                                                    | 미지원 XML 오류                                | 미지원                  | 지원하지 않는 model XML을 조용히 삭제하지 않음                                                                                                    |
 | emboss/text/font 등 config 안의 vendor 구조                                                                         | XML 첨부 원본 보존                             | typed 재구성 미지원     | 기존 config를 일반 import/save 하는 경우만 보존                                                                                                   |
 
 `BambuStudioProject.toDocument()`는 전달한 object/plate 설정으로 `model_settings.config`를 다시 만들고 `slice_info.config`를 header만으로 다시 만듭니다. 따라서 **기존 sliced 프로젝트를 완전하게 편집하는 API로 사용하면 안 됩니다**. 소유하는 세 config 파일은 대체하고 기타 첨부는 유지합니다. `setPresets()`를 호출하지 않으면 기존 개별 preset 파일을 유지하며, 호출하면 전체 현대 preset 컬렉션을 교체합니다(`[]`는 제거). 제거된 preset 파일을 source 또는 internal target으로 갖는 OPC 관계도 제거합니다. 같은 경로의 preset이 대체되는 경우 그 관계는 유지합니다.
@@ -119,3 +120,45 @@ const plates = inspection.plates;
 - 실제 Formify X2D profile: 569개 key의 JSON 값을 왕복 보존. slot 8개, variant/self-index 32개, nozzle 2개, flush vector 128개를 그대로 유지한 채 export/import.
 - 실제 Snowfiy sample: 3 plate, 48 instance 및 통합 profile을 typed 조회.
 - Node와 browser/Worker가 같은 API를 사용합니다. 실제 Bambu Studio GUI의 로딩·슬라이싱 검증은 수행하지 않았습니다.
+
+## Unsplit face colors
+
+`MeshGeometry.withBambuTriangleColors(slots)` copies a triangle-aligned array of
+1-based project filament slots. `undefined` inherits the part assignment.
+The model reader/writer supports Bambu `paint_color` unsplit leaves (1–255);
+recursive subdivision painting is supported with `MeshGeometry.withBambuTrianglePaint`. The Bambu
+project checks painted slots against its profile. This is vendor data, separate
+from standard Materials color groups. No GUI slicing or physical printing was verified.
+
+
+## Recursive facet painting
+
+`BambuTrianglePaint` is a 1-based filament slot or a node `{ split, side, children }`.
+`split` is 1, 2 or 3; `side` is 0, 1 or 2 (0 for three-side splits).
+Children follow TriangleSelector geometric order; `undefined` leaves inherit the part.
+The nibble codec owns Bambu wire order. Applications must not encode XML strings.
+Paint forests align with original triangles and cannot conflict with unsplit slots.
+Slot checks include every nested leaf. Trees are bounded to depth 64 and 1,000,000 nodes per face.
+
+`BambuFacetPainting.sample(mesh, sampler, { maxEdgeLength, maxDepth?, maxNodes? })`
+creates a forest by sampling logical subfaces. The length uses caller geometry units;
+printer scale, resolution and filament selection remain caller-owned. Constant regions
+collapse to one leaf. Geometry positions and indices are unchanged. Sampling is bounded
+by a total node budget, and rejects incomplete or nonfinite geometry and exhausted limits.
+A reflection applied directly to recursively painted geometry is explicitly unsupported;
+use model/build transforms instead. Existing uniform painting remains compatible.
+
+Validation performed: focused wire-order, malformed tree, ownership, unchanged geometry,
+project slot checks; user-provided 8-vertex/12-triangle cube **mesh/paint data only**
+round-tripped with four `paint_color` strings unchanged. The sample's complete Bambu
+metadata package is not supported by the strict reader; no claim of full project import.
+No GUI slicing or physical printing was verified. The private user sample is not redistributed.
+Format reference: official BambuStudio TriangleSelector::serialize and FacetsAnnotation.
+
+`BambuFacetPainting.visit(mesh, forest, visitor)` visits logical color patches for previews without adding any document mesh vertices.
+
+Sampling options may supply a `uniform(points, triangle)` oracle returning `{slot}` only when the entire logical patch is proven uniform; `undefined` requests normal refinement. Atlas range queries can avoid work on constant regions without losing small markings. The caller owns this proof.
+
+The painting reader consumes triangle XML leaves directly into numeric and paint
+buffers, retaining the bounded-memory mesh parsing path. Root package entrypoints,
+MakerWorld metadata and encoded gallery URIs retain their existing contracts.

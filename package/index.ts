@@ -59,6 +59,7 @@ export type {
   Component,
   BuildItem,
   TriangleProperties,
+  BambuTrianglePaint,
   PackagePart,
   Relationship,
   Diagnostic,

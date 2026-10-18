@@ -1,3 +1,4 @@
+import { readBambuPaint, writeBambuPaint } from "./bambu-paint.js";
 import { NS } from "../constants.js";
 import { fail } from "../errors.js";
 import {
@@ -17,6 +18,7 @@ import type {
   Resource,
   Transform,
   TriangleProperties,
+  BambuTrianglePaint,
 } from "../model/types.js";
 import {
   attr,
@@ -134,6 +136,16 @@ function readObject(
       properties: buffers.properties?.some(Boolean)
         ? buffers.properties
         : undefined,
+      bambuTriangleColors: buffers.bambuTriangleColors?.some(
+        (slot) => slot !== undefined,
+      )
+        ? buffers.bambuTriangleColors
+        : undefined,
+      bambuTrianglePaint: buffers.bambuTrianglePaint?.some(
+        (paint) => paint !== undefined,
+      )
+        ? buffers.bambuTrianglePaint
+        : undefined,
     },
   };
 }
@@ -158,7 +170,13 @@ export function parseModel(
     if (node.uri !== NS.core || node.local !== leaf) return;
     let buffers = meshBuffers.get(grandparent);
     if (!buffers) {
-      buffers = { positions: [], indices: [], properties: [] };
+      buffers = {
+        positions: [],
+        indices: [],
+        properties: [],
+        bambuTriangleColors: [],
+        bambuTrianglePaint: [],
+      };
       meshBuffers.set(grandparent, buffers);
     }
     if (leaf === "vertex") {
@@ -169,7 +187,18 @@ export function parseModel(
         numberAttr(node, "z")!,
       );
     } else {
-      checkNode(node, plain("v1", "v2", "v3", "pid", "p1", "p2", "p3"), []);
+      checkNode(
+        node,
+        plain("v1", "v2", "v3", "pid", "p1", "p2", "p3", "paint_color"),
+        [],
+      );
+      const paint = readBambuPaint(attr(node, "paint_color"));
+      (buffers.bambuTriangleColors as (number | undefined)[]).push(
+        typeof paint === "number" ? paint : undefined,
+      );
+      (buffers.bambuTrianglePaint as (BambuTrianglePaint | undefined)[]).push(
+        typeof paint === "object" ? paint : undefined,
+      );
       (buffers.indices as number[]).push(
         numberAttr(node, "v1")!,
         numberAttr(node, "v2")!,
@@ -225,10 +254,11 @@ export function parseModel(
     requiredExtensions,
     recommendedExtensions: extensionUris("recommendedextensions"),
     metadata: root.children.filter((n) => n.local === "metadata").map(metadata),
-    resources: resources.children.map((node): Resource =>
-      node.uri === NS.core && node.local === "object"
-        ? readObject(node, meshBuffers)
-        : readMaterial(node),
+    resources: resources.children.map(
+      (node): Resource =>
+        node.uri === NS.core && node.local === "object"
+          ? readObject(node, meshBuffers)
+          : readMaterial(node),
     ),
     buildUuid: attr(build, "UUID", NS.production),
     build: build.children.map((node): BuildItem => {
@@ -333,6 +363,10 @@ export function serializeModel(model: Model): string {
               v2: mesh.indices[i + 1],
               v3: mesh.indices[i + 2],
               ...mesh.properties?.[i / 3],
+              paint_color: writeBambuPaint(
+                mesh.bambuTrianglePaint?.[i / 3] ??
+                  mesh.bambuTriangleColors?.[i / 3],
+              ),
             }),
           );
         shape = element(
