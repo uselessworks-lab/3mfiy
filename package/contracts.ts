@@ -7,8 +7,13 @@ export interface PortableMesh { readonly positions: Float32Array | Float64Array;
 export interface Material { readonly id: string; readonly label?: string; readonly color: string }
 export interface ResultEntity { readonly id: string; readonly label?: string; readonly properties?: Readonly<Record<string, unknown>> }
 export interface EntityProperties { readonly entityIds?: readonly string[]; readonly properties?: Readonly<Record<string, unknown>> }
-export interface ObjectPrintSettings { readonly name?: string; readonly settings?: Readonly<Record<string, string>> }
-export interface PartPrintSettings extends ObjectPrintSettings {
+export interface ObjectPrintSettings {
+  readonly name?: string;
+  readonly settings?: Readonly<Record<string, string>>;
+  /** Object pose before plate packing; retained for later repacking of the same object. */
+  readonly orientation?: Matrix4;
+}
+export interface PartPrintSettings extends Omit<ObjectPrintSettings, 'orientation'> {
   readonly filamentPriority?: number;
   readonly filamentSlot?: number;
   readonly materialName?: string;

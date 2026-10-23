@@ -145,3 +145,5 @@ planning independently of the XML/ZIP writer.
 
 See [the canonical print API](package/README.md#canonical-print-projects) for
 selection, placement and validation semantics.
+
+Object `print.orientation` is the pose before plate packing. Final print occurrences remain in `printing.placements`; repacking uses the original orientation rather than trying to recover it from a translated plate placement. Parts do not carry an object orientation. The type-only contract remains independent of the XML/ZIP writer.

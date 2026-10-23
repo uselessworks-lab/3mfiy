@@ -62,3 +62,5 @@ write-local; the input graph is never mutated. Domain resources still own their
 snapshots and validation. `package/filaments.ts` is a separate lightweight pure
 palette entry used during generation. Optional rendering/presentation scenes and
 model-specific source editing remain outside the printing contract.
+
+Object `print.orientation` is the pose before plate packing. Final print occurrences remain in `printing.placements`; repacking uses the original orientation rather than trying to recover it from a translated plate placement. Parts do not carry an object orientation. The type-only contract remains independent of the XML/ZIP writer.

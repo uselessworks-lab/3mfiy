@@ -80,6 +80,7 @@ class PrintGraph {
       instances.add(id); covered.add(placement.outputId);
       if (!this.name(output).trim()) throw Error('Invalid export object name.');
       settings(output.print?.settings);
+      if (output.print?.orientation) transform(output.print.orientation);
       unique(output.representations, 'representation');
       const parts = this.parts(placement);
       if (!parts.length) throw Error('At least one part is required.');

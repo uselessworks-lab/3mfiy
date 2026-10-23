@@ -203,3 +203,5 @@ working, then materialize it before calling `PrintWriter`.
 `assignFilamentSlots`, `planFilamentSlots` and `summarizePrintColors` without
 loading XML, ZIP or the print writer. Palette priority and first-slot tie behavior
 match the generator's existing manufacturing calculations.
+
+Object `print.orientation` is the pose before plate packing. Final print occurrences remain in `printing.placements`; repacking uses the original orientation rather than trying to recover it from a translated plate placement. Parts do not carry an object orientation. The type-only contract remains independent of the XML/ZIP writer.
