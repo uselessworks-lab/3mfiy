@@ -58,6 +58,17 @@
     "./bambu": {
       "types": "./dist/adapters/bambu.d.ts",
       "import": "./dist/adapters/bambu.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts.d.ts"
+    },
+    "./print": {
+      "types": "./dist/print.d.ts",
+      "import": "./dist/print.js"
+    },
+    "./filaments": {
+      "types": "./dist/filaments.d.ts",
+      "import": "./dist/filaments.js"
     }
   },
   "files": [

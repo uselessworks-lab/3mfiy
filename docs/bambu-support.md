@@ -119,3 +119,12 @@ const plates = inspection.plates;
 - 실제 Formify X2D profile: 569개 key의 JSON 값을 왕복 보존. slot 8개, variant/self-index 32개, nozzle 2개, flush vector 128개를 그대로 유지한 채 export/import.
 - 실제 Snowfiy sample: 3 plate, 48 instance 및 통합 profile을 typed 조회.
 - Node와 browser/Worker가 같은 API를 사용합니다. 실제 Bambu Studio GUI의 로딩·슬라이싱 검증은 수행하지 않았습니다.
+
+### Canonical generator entry
+
+`PrintWriter` consumes typed per-object/per-part print settings and explicit
+plate/occurrence plans. Caller profiles, palette vectors, child resource IDs,
+plate names/locks and chosen physical/print/omitted assembly metadata are retained.
+`sceneTransform` can preserve already-computed archive coordinates exactly.
+Tests reopen actual archives and inspect settings, profiles and plates; slicer GUI
+validation and physical print verification remain separate.

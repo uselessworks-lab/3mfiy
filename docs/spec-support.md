@@ -61,3 +61,12 @@ vendor 예외로 보존한다. Core 표준 metadata의 이름 규칙을 확대�
 - 생성한 Core XML을 공식 Appendix A XSD로 검사합니다. macOS libxml2가 `maxOccurs=2147483647`을 처리하지 못하므로 테스트에서만 `unbounded`로 치환하며, 해당 수량 상한은 TS 검증기가 별도로 검사합니다. `xml:lang` import는 로컬 최소 정의로 대체합니다. 전체 Consortium conformance suite는 실행하지 않았습니다.
 - Chromium에서 Node globals 없이 읽기/쓰기를 실행하고 Web Worker에서도 동일 경로를 검증합니다.
 - 기존 Snowfiy의 `snowfiy-curated-16-three-plates.3mf`를 실제로 읽고 재저장한 뒤 다시 읽었습니다(2 model parts, 48 build items, 진단 오류 없음). 다른 네 프로젝트의 전체 출력 파일이나 Bambu Studio GUI 로딩은 별도 검증 대상입니다.
+
+### Canonical generator entry
+
+The optional `./print` entry accepts completed canonical printing graphs and writes
+through the same Core/Production resources and validator. Focused tests cover
+exact Float64 geometry, shared mesh/material identity, repeated occurrences,
+part/print transform baking and reflected winding, reference validation and
+manufacturing exclusion. The browser/Worker harness also round-trips this writer.
+This adds an authoring entry and no new 3MF XML extension support.

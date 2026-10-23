@@ -147,3 +147,59 @@ Core, Materials and Production support is documented in the [3MF support matrix]
 ## License
 
 Licensed under the [MIT License](https://github.com/uselessworks-lab/3mfiy/blob/main/LICENSE). Copyright (c) 2026 useless works.
+
+## Canonical print projects
+
+```ts
+import type { PrintableProject, ThreeMfOptions } from '@uselessworks/3mfiy/contracts';
+
+async function exportProject(project: PrintableProject, signal?: AbortSignal) {
+  const { PrintWriter } = await import('@uselessworks/3mfiy/print');
+  const options: ThreeMfOptions = {
+    title: 'Generated model',
+    format: 'standard',
+    defaultColor: '#808080',
+  };
+  return new PrintWriter().write(project, options, signal);
+}
+```
+
+`PrintableProject<G>` is the neutral object/representation/part graph with a
+geometry pool keyed by `geometryId`. The default `G` is completed `OutputGeometry`
+with typed-array meshes. A generator may use its own geometry-pool value while
+working, then materialize it before calling `PrintWriter`.
+
+- `printing.outputIds` and `printing.placements` explicitly select occurrences.
+  Each placement references one object, representation and plate. `instanceId`
+  distinguishes repeated occurrences; when omitted it is the object ID.
+- Part `print` owns optional `name`, `settings`, `filamentPriority`, `filamentSlot`
+  and `materialName`. Object `print` owns optional `name` and `settings`. Source
+  properties and entity relationships are preserved by callers and never inferred
+  by the writer. Material color comes from `materialId`, falling back to the
+  requested default color. Equal material name/color bindings and shared geometry
+  are reused within the relevant 3MF model resource scope.
+- Transforms are column-major affine 4×4 values. `component.transform` is local to
+  its object; `PrintPlacement.transform` is plate-local. Plate `origin` adds the
+  scene XY offset. Optional `sceneTransform` provides an exact already-computed
+  scene pose when different arithmetic order must be preserved; it does not
+  replace the physical plate-local transform.
+- `assembly: 'physical'` (default) uses matching physical assembly occurrences,
+  falling back to print placement when absent. `'print'` records print scene
+  coordinates, and `'omit'` omits Bambu assembly metadata. Physical assembly
+  representation matching is required only when physical assembly is used.
+- `bakeTransforms: true` applies part and print scene transforms to mesh vertices,
+  retains double precision, corrects reflected winding, and emits identity build
+  transforms. A physical assembly pose is compensated for the baked print pose.
+- Bambu project options require a caller-provided profile and explicit filament
+  palette. Optional per-occurrence `meshPaths` controls child model resource
+  distribution. Plate `name`, `locked`, and origin are caller policy.
+- Manufacturing-ineligible results, invalid occurrence/material/geometry
+  references, duplicates, invalid transforms, meshes and filament settings are
+  rejected. Writing validates topology and reopens the archive for validation.
+  The writer performs no slicing, auto-packing, printer-profile discovery or
+  physical manufacturing certification.
+
+`@uselessworks/3mfiy/filaments` exports `nearestFilamentSlot`,
+`assignFilamentSlots`, `planFilamentSlots` and `summarizePrintColors` without
+loading XML, ZIP or the print writer. Palette priority and first-slot tie behavior
+match the generator's existing manufacturing calculations.

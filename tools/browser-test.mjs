@@ -17,6 +17,7 @@ const { outputFiles } = await build({
   stdin: {
     contents: `import {ThreeMFDocument,ThreeMFBuilder,MeshGeometry,ThreeMFUnit} from './dist/index.js';
 import {BambuStudioProject,BambuProfile,BambuPlate} from './dist/adapters/bambu.js';
+import {PrintWriter} from './dist/print.js';
 export function exercise(){
  if(typeof process!=='undefined'||typeof Buffer!=='undefined')throw Error('Unexpected Node globals');
  const geometry=new MeshGeometry([0,0,0,1,0,0,0,1,0,0,0,1],[0,2,1,0,1,3,0,3,2,1,2,3]);
@@ -28,6 +29,9 @@ export function exercise(){
  const bytes=project.write(); const parsed=ThreeMFDocument.read(bytes);
  const inspection=BambuStudioProject.inspect(parsed);
  if(inspection.profile.toData().filament_settings_id[0]!=='Browser PLA'||inspection.plates.length!==1)throw Error('Bambu browser roundtrip');
+ const I=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];
+ const canonical={outputs:[{id:'part',representations:[{id:'main',components:[{id:'base',geometryId:'mesh'}]}]}],geometries:[{id:'mesh',kind:'mesh',mesh:{positions:new Float64Array([0,0,0,1,0,0,0,1,0,0,0,1]),indices:new Uint32Array([0,2,1,0,1,3,0,3,2,1,2,3])},bounds:{min:[0,0,0],max:[1,1,1]}}],printing:{outputIds:['part'],plates:[{id:'main',extent:'unspecified'}],placements:[{outputId:'part',representationId:'main',plateId:'main',transform:I}]}};
+ ThreeMFDocument.read(new PrintWriter().write(canonical,{title:'Browser canonical',format:'standard'})).assertValid();
  const restored=ThreeMFDocument.fromData(structuredClone(parsed.toData()));
  restored.assertValid();
  return {models:restored.models.length,bytes:bytes.length,blob:new Blob([bytes]).size};

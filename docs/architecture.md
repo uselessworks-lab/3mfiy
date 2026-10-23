@@ -47,3 +47,18 @@ builder의 다음 `build()`는 이전 결과를 변경하지 않습니다. ID를
 `DocumentValidator`와 `ModelValidator`는 내부 서비스입니다. 모델/리소스 인덱스·UUID·참조 그래프·진단을 실행마다 분리하고 OPC까지 검증합니다. 공개 호출은 `document.validate()`/`assertValid()`입니다. XML/ZIP의 순수 보조 함수는 내부 구현에 한정합니다.
 
 문자열 enum과 template literal 타입은 정확한 wire 문자열과 enum 멤버를 함께 허용합니다. `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`를 활성화했습니다. 확장을 추가할 때는 DTO union, 리소스 클래스, codec, validator, 지원 표를 함께 갱신해야 합니다. 내부 codec 등록만으로 임의 XML이 지원된다고 주장하지 않습니다.
+
+## Canonical generator contracts
+
+`package/contracts.ts` is a type-only, runtime-neutral printing graph shared with
+model generators. `PrintableProject<G>` changes only the geometry-pool value type
+between native generation and completed portable meshes; object/representation/
+part identities and print/assembly relationships stay the same.
+
+`package/print.ts` owns `PrintWriter`, the lazy high-level writer. It indexes the
+canonical graph by reference and builds 3mfiy document/resources directly. It does
+not create a parallel export-object tree. Mesh/resource/material deduplication is
+write-local; the input graph is never mutated. Domain resources still own their
+snapshots and validation. `package/filaments.ts` is a separate lightweight pure
+palette entry used during generation. Optional rendering/presentation scenes and
+model-specific source editing remain outside the printing contract.

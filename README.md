@@ -128,3 +128,20 @@ See [Contributing](CONTRIBUTING.md), [Architecture](docs/architecture.md), [Rele
 ## License
 
 3mfiy is licensed under the [MIT License](LICENSE). Third-party test fixtures retain their own notices in [tests/fixtures](tests/fixtures/README.md).
+
+## Generator print contracts
+
+Generators can share the canonical `PrintableProject` graph through the type-only
+`@uselessworks/3mfiy/contracts` entry. The graph keeps objects, representations,
+parts, a geometry pool, materials, assembly and plate-local print placements.
+Part and object `print` fields carry explicit names, slicer settings and filament
+policy; the writer never interprets generator-specific `properties`.
+
+Load `@uselessworks/3mfiy/print` only when exporting, then call
+`new PrintWriter().write(project, options, signal?)`. This consumes the same graph
+directly and creates standard or Bambu resources without a second export object
+schema. The lightweight `@uselessworks/3mfiy/filaments` entry provides palette
+planning independently of the XML/ZIP writer.
+
+See [the canonical print API](package/README.md#canonical-print-projects) for
+selection, placement and validation semantics.
