@@ -192,7 +192,7 @@ working, then materialize it before calling `PrintWriter`.
   transforms. A physical assembly pose is compensated for the baked print pose.
 - Bambu project options require a caller-provided profile and explicit filament
   palette. Optional per-occurrence `meshPaths` controls child model resource
-  distribution. Plate `name`, `locked`, and origin are caller policy.
+  distribution. `project.meshLayout: 'parts'` gives each selected component its own child XML file, deriving `<base>_<occurrence index>_<part index>.model` from its occurrence path. Without that option, components share the selected occurrence path. Plate `name`, `locked`, and origin are caller policy.
 - Manufacturing-ineligible results, invalid occurrence/material/geometry
   references, duplicates, invalid transforms, meshes and filament settings are
   rejected. Writing validates topology and reopens the archive for validation.

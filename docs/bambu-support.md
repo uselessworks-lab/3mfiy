@@ -126,5 +126,8 @@ const plates = inspection.plates;
 plate/occurrence plans. Caller profiles, palette vectors, child resource IDs,
 plate names/locks and chosen physical/print/omitted assembly metadata are retained.
 `sceneTransform` can preserve already-computed archive coordinates exactly.
+Canonical project `meshLayout: 'parts'` splits component meshes into separate
+child XML files while retaining wrapper references, per-occurrence `meshPaths`,
+part settings and filament bindings; omitted layout keeps shared child models.
 Tests reopen actual archives and inspect settings, profiles and plates; slicer GUI
 validation and physical print verification remain separate.

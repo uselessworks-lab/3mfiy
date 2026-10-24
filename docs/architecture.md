@@ -64,3 +64,5 @@ palette entry used during generation. Optional rendering/presentation scenes and
 model-specific source editing remain outside the printing contract.
 
 Object `print.orientation` is the pose before plate packing. Final print occurrences remain in `printing.placements`; repacking uses the original orientation rather than trying to recover it from a translated plate placement. Parts do not carry an object orientation. The type-only contract remains independent of the XML/ZIP writer.
+
+For Bambu output, `project.meshLayout: 'parts'` partitions completed component meshes into individual child model files; per-occurrence `meshPaths` remains the base-path authority. The writer owns file/resource distribution only, with unchanged caller geometry, placement and filament policy.

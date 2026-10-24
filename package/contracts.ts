@@ -88,6 +88,8 @@ export interface ThreeMfOptions {
     readonly applicationVersion: string;
     readonly profile: import('./adapters/bambu/types.js').BambuProjectSettings;
     readonly meshPath: string;
+    /** Put each selected component in its own child model XML. Default: share the occurrence path. */
+    readonly meshLayout?: 'parts';
     readonly meshPaths?: Readonly<Record<string, string>>;
     readonly metadata?: ThreeMfMetadata['metadata'];
   };

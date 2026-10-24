@@ -164,6 +164,7 @@ export class PrintWriter {
     if (!options.title.trim() || !['standard', 'bambu-project'].includes(options.format)
       || (options.assembly !== undefined && !['physical', 'print', 'omit'].includes(options.assembly))) throw Error('Invalid 3MF options.');
     if (options.format === 'bambu-project' && !options.project) throw Error('Bambu project configuration is required.');
+    if (options.project?.meshLayout !== undefined && options.project.meshLayout !== 'parts') throw Error('Invalid child mesh layout.');
     const graph = new PrintGraph(source, options);
     let document = this.document(options);
     if (options.format === 'standard') this.standard(document, graph, signal);
@@ -214,13 +215,15 @@ export class PrintWriter {
         || path === '/3D/3dmodel.model' || path.split('/').some(segment => segment === '..' || segment === '.'))))
       throw Error('Every export object needs a valid child model path.');
     const paths = placements.map(p => suppliedPaths?.[occurrence(p)] ?? options.project!.meshPath);
+    const partPaths = paths.map((path, index) => graph.parts(placements[index]!).map((_, partIndex) =>
+      options.project!.meshLayout === 'parts' ? path.replace(/\.model$/, `_${index + 1}_${partIndex + 1}.model`) : path));
     let nextId = 1;
     const resources = new Map<string, Map<MeshGeometry, Map<string, number>>>();
     const bindings = placements.map((placement, index) => {
-      const path = paths[index]!;
-      let pathResources = resources.get(path);
-      if (!pathResources) { pathResources = new Map(); resources.set(path, pathResources); }
-      const componentIds = graph.parts(placement).map(part => {
+      const componentIds = graph.parts(placement).map((part, partIndex) => {
+        const path = partPaths[index]![partIndex]!;
+        let pathResources = resources.get(path);
+        if (!pathResources) { pathResources = new Map(); resources.set(path, pathResources); }
         const mesh = graph.mesh(part, placement);
         let values = pathResources.get(mesh);
         if (!values) { values = new Map(); pathResources.set(mesh, values); }
@@ -235,15 +238,16 @@ export class PrintWriter {
     const children = new Map<string, { child: ReturnType<ThreeMFDocument['createModel']>; materials: BaseMaterialsResource; colors: Map<string, number>; written: Set<number> }>();
     placements.forEach((placement, index) => {
       signal?.throwIfAborted();
-      const binding = bindings[index]!, path = paths[index]!;
-      let state = children.get(path);
-      if (!state) {
-        const child = document.createModel(path, { unit: 'millimeter', language: 'en-US' });
-        state = { child, materials: child.addResource(new BaseMaterialsResource(nextId++)), colors: new Map(), written: new Set() };
-        children.set(path, state);
-      }
-      const { child, materials, colors, written } = state;
+      const binding = bindings[index]!;
       graph.parts(placement).forEach((part, partIndex) => {
+        const path = partPaths[index]![partIndex]!;
+        let state = children.get(path);
+        if (!state) {
+          const child = document.createModel(path, { unit: 'millimeter', language: 'en-US' });
+          state = { child, materials: child.addResource(new BaseMaterialsResource(nextId++)), colors: new Map(), written: new Set() };
+          children.set(path, state);
+        }
+        const { child, materials, colors, written } = state;
         const id = binding.componentIds[partIndex]!;
         if (written.has(id)) return;
         written.add(id);
@@ -253,7 +257,7 @@ export class PrintWriter {
         child.addResource(new MeshResource(id, graph.mesh(part, placement), { name: graph.partName(part) })).setProperty(materials.id, color);
       });
       const wrapper = document.rootModel.addResource(new ComponentsResource(binding.objectId, [], { name: graph.name(graph.output(placement)) }));
-      binding.componentIds.forEach((id, partIndex) => wrapper.addComponent({ objectId: id, path, transform: graph.partPose(graph.parts(placement)[partIndex]!).toData() }));
+      binding.componentIds.forEach((id, partIndex) => wrapper.addComponent({ objectId: id, path: partPaths[index]![partIndex]!, transform: graph.partPose(graph.parts(placement)[partIndex]!).toData() }));
       document.rootModel.addBuildItem({ objectId: wrapper.id, transform: graph.printPose(placement).toData() });
     });
     document = document.withProductionUUIDs();

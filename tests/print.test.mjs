@@ -66,3 +66,23 @@ test('writer rejects invalid canonical references, duplicates and ineligible out
   const controller=new AbortController();controller.abort();
   assert.throws(()=>new PrintWriter().write(source(),standard,controller.signal),{name:'AbortError'});
 });
+
+test('Bambu parts layout splits component XML while preserving occurrence paths, wrapper IDs and settings',()=>{
+  const value=source(),parts=value.outputs[0].representations[0].components;
+  parts.push({...parts[0],id:'detail',print:{name:'Cap detail',filamentSlot:1}});
+  value.printing.placements.push({...value.printing.placements[0],instanceId:'copy',transform:matrix(10,20,0)});
+  const options={title:'Split parts',format:'bambu-project',assembly:'print',project:{applicationVersion:'2.0.0',meshPath:'/3D/Objects/fallback.model',meshPaths:{cap:'/3D/Objects/first.model',copy:'/3D/Objects/second.model'},profile:{filament_colour:['#123456'],filament_settings_id:['Caller PLA']}}};
+  const shared=document(value,options),split=document(value,{...options,project:{...options.project,meshLayout:'parts'}});
+  const meshModels=doc=>doc.toData().models.filter(model=>model.resources.some(resource=>resource.kind==='object'&&resource.mesh));
+  assert.deepEqual(meshModels(shared).map(model=>model.path),['/3D/Objects/first.model','/3D/Objects/second.model']);
+  assert.deepEqual(meshModels(split).map(model=>model.path),['/3D/Objects/first_1_1.model','/3D/Objects/first_1_2.model','/3D/Objects/second_2_1.model','/3D/Objects/second_2_2.model']);
+  for(const model of meshModels(split))assert.equal(model.resources.filter(resource=>resource.kind==='object'&&resource.mesh).length,1);
+  assert.deepEqual(split.rootModel.buildItems.map(({uuid,...item})=>item),shared.rootModel.buildItems.map(({uuid,...item})=>item));
+  const config=doc=>new TextDecoder().decode(doc.getAttachment('/Metadata/model_settings.config').data);
+  assert.equal(config(split),config(shared));
+  const meshes=doc=>meshModels(doc).flatMap(model=>model.resources.flatMap(resource=>resource.kind==='object'&&resource.mesh?[[resource.name,resource.mesh.positions,resource.mesh.indices]]:[]));
+  assert.deepEqual(meshes(split),meshes(shared));
+  const defaultParts=document(value,{...options,project:{...options.project,meshPaths:undefined,meshLayout:'parts'}});
+  assert.deepEqual(meshModels(defaultParts).map(model=>model.path),['/3D/Objects/fallback_1_1.model','/3D/Objects/fallback_1_2.model','/3D/Objects/fallback_2_1.model','/3D/Objects/fallback_2_2.model']);
+  assert.throws(()=>document(value,{...options,project:{...options.project,meshLayout:'invalid'}}),/Invalid child mesh layout/);
+});
