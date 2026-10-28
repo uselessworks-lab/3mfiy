@@ -42,7 +42,7 @@ vendor 예외로 보존한다. Core 표준 metadata의 이름 규칙을 확대�
 | Secure Content     | 전체                                                         | 미지원                 | 미지원      | 필수 확장 URI면 거부                                                                        |
 | Volumetric         | 전체                                                         | 미지원                 | 미지원      | 필수 확장 URI면 거부                                                                        |
 | Toolpath           | 전체                                                         | 미지원                 | 미지원      | 2026-09-17 목록에 추가된 확장. 필수 URI면 거부                                              |
-| Bambu 비표준       | 통합/개별 profile, plate 설정/PNG, extruder, assembly        | 부분 typed + 원본 보존 | 어댑터 지원 | [세부 지원 감사](bambu-support.md). slice 결과/painting/전체 config 해석과 GUI 검증 미지원  |
+| Bambu 비표준       | 통합/개별 profile, plate 설정/PNG, extruder, assembly        | 부분 typed + 원본 보존 | 어댑터 지원 | [세부 지원 감사](bambu-support.md). slice 결과/전체 config 해석과 GUI 검증 미지원  |
 
 ## 읽기·재저장 정책
 
@@ -88,3 +88,5 @@ bindings remain protected. It does not reconstruct face painting, validate arbit
 vendor extension semantics, update sliced toolpaths or edit signed packages.
 Mixed-unit component references are explicitly unsupported. A successful patch
 is a preservation operation, not slicer or physical-print certification.
+
+Bambu triangle painting supports unsplit slots via `MeshGeometry.withBambuTriangleColors` and recursive facet trees via `withBambuTrianglePaint`. Paint subdivision does not add mesh vertices or triangles. This is Bambu vendor data, separate from standard Core/Materials. `ThreeMFBuilder` part `vertexColors` maps sRGB hex colors to standard Materials corner indices (not automatic printer filament selection).

@@ -1,3 +1,4 @@
+import { bambuPaintSlots } from "../../model/bambu-paint.js";
 import { DataSnapshot } from "../../domain/snapshot.js";
 import { ThreeMFDocument } from "../../domain/document.js";
 import { fail } from "../../errors.js";
@@ -208,9 +209,30 @@ export class BambuStudioProject {
     return this;
   }
   toDocument(): ThreeMFDocument {
-    const data = withBambuProject(this.#document.toData(), {
+    const profile = this.#profile.toData();
+    const source = this.#document.toData();
+    const slots = filamentSlotCount(profile);
+    for (const model of source.models)
+      for (const resource of model.resources)
+        if (
+          resource.kind === "object" &&
+          (resource.mesh?.bambuTrianglePaint?.some((paint) =>
+            [...bambuPaintSlots(paint)].some(
+              (slot) => slots === undefined || slot > slots,
+            ),
+          ) ||
+            resource.mesh?.bambuTriangleColors?.some(
+              (slot) =>
+                slot !== undefined && (slots === undefined || slot > slots),
+            ))
+        )
+          fail(
+            "BAMBU_TRIANGLE_COLORS",
+            "Painted filament slot is outside the project profile",
+          );
+    const data = withBambuProject(source, {
       applicationVersion: this.#applicationVersion,
-      projectSettings: this.#profile.toData(),
+      projectSettings: profile,
       objects: [...this.#objects.values()],
       plates: this.plates.map((p) => p.toData()),
       embeddedPresets: this.#presets?.map((p) => p.toData()),

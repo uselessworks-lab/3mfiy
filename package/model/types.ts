@@ -42,11 +42,25 @@ export interface TriangleProperties {
   p2?: number;
   p3?: number;
 }
+/** Bambu paint subdivision only; children retain the original mesh triangle.
+ * Children use Bambu TriangleSelector geometric order, not wire order.
+ * undefined leaves inherit the part's filament. */
+export type BambuTrianglePaint =
+  | number
+  | {
+      split: 1 | 2 | 3;
+      side: 0 | 1 | 2;
+      children: readonly (BambuTrianglePaint | undefined)[];
+    };
 export interface Mesh {
   positions: NumericArray;
   indices: NumericArray;
   /** One entry per triangle. An undefined entry inherits object properties. */
   properties?: readonly (TriangleProperties | undefined)[];
+  /** Bambu unsplit face painting: 1-based filament slot per triangle; undefined inherits the part. */
+  bambuTriangleColors?: readonly (number | undefined)[];
+  /** Recursive Bambu facet painting. Cannot overlap an unsplit color on a face. */
+  bambuTrianglePaint?: readonly (BambuTrianglePaint | undefined)[];
 }
 export interface ObjectReference {
   objectId: number;

@@ -144,6 +144,8 @@ Bambu authoring regenerates model settings and header-only slice info. It is for
 
 Core, Materials and Production support is documented in the [3MF support matrix](https://github.com/uselessworks-lab/3mfiy/blob/main/docs/spec-support.md); partial support does not imply full conformance. Unsupported model XML fails explicitly instead of being silently discarded. ZIP32/UTF-8 input has configurable size/complexity limits. Geometry/topology is validated without repair. Input is processed in memory; use a Worker for large files. Browser output is a `Uint8Array` that can be wrapped in a `Blob`; filesystem and download policy belong to the application.
 
+Mesh XML leaves are validated and consumed directly into numeric buffers to avoid retaining a second full XML tree for large meshes. Existing namespace, numeric precision and size/complexity checks still apply.
+
 ## License
 
 Licensed under the [MIT License](https://github.com/uselessworks-lab/3mfiy/blob/main/LICENSE). Copyright (c) 2026 useless works.
@@ -257,3 +259,31 @@ or paint reconstruction after remeshing. Signed packages and embedded sliced
 toolpaths are rejected; use an unsliced project. ZIP limits, CRC/path checks,
 DTD rejection and finite vertex/index validation run before editing. Slicer
 verification and physical printing remain caller responsibilities.
+
+### Vertex and printable face colors
+
+A `ThreeMFBuilder` part may supply `vertexColors: readonly string[]`, one sRGB
+hex value per geometry vertex. The builder owns a copy, creates a color group,
+and assigns triangle corner indices. Existing triangle properties are rejected
+to avoid silently overwriting them.
+
+For Bambu output, supply caller-selected 1-based filament slots per triangle:
+`mesh.withBambuTriangleColors([1, 2, 1, 2])`. This immutable method copies the
+array, preserves it through transforms, and writes unsplit `paint_color` leaves.
+It does not quantize RGB colors or subdivide geometry. Use `BambuStudioProject`
+with a matching filament profile; slots outside that profile are rejected.
+
+
+### Bambu painting without mesh subdivision
+
+```ts
+import { BambuFacetPainting } from '@uselessworks/3mfiy/bambu';
+const paint = BambuFacetPainting.sample(mesh, ([x, y, z], triangle, barycentric) =>
+  x < 0 ? 1 : 2, { maxEdgeLength: 0.4 });
+const painted = mesh.withBambuTrianglePaint(paint);
+// painted.vertexCount and triangleCount are unchanged.
+```
+
+The sampler returns a project filament slot (1–255), or `undefined` to inherit.
+Recursive Bambu painting is a vendor extension; standard viewers may show the
+object's base color. Set `maxDepth`/`maxNodes` to bound caller-owned sampling work.
