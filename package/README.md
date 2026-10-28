@@ -205,3 +205,55 @@ loading XML, ZIP or the print writer. Palette priority and first-slot tie behavi
 match the generator's existing manufacturing calculations.
 
 Object `print.orientation` is the pose before plate packing. Final print occurrences remain in `printing.placements`; repacking uses the original orientation rather than trying to recover it from a translated plate placement. Parts do not carry an object orientation. The type-only contract remains independent of the XML/ZIP writer.
+
+
+## Mesh-only repair archives
+
+`@uselessworks/3mfiy/repair` is an optional, separate preservation entry.
+`RepairArchive.read(bytes, { limits? })` owns the original archive and exposes
+independent `meshes` snapshots (`id`, `path`, `objectId`, optional `name`, `unit`,
+`positions`, `indices`, `protectedTopology`) and build `instances`
+(`meshId`, 12-value row-vector `transform`). Mesh coordinates remain in their
+source unit; instance transforms include the conversion to millimetres. Nested
+component transforms and mesh identities are retained. Mixed-unit references
+are rejected rather than guessed.
+The `registration` snapshot reports `{ objects, parts }` from Bambu
+`Metadata/model_settings.config` object/part registrations when present. Generic
+3MF falls back to root build-item count and their resolved leaf mesh occurrences,
+including repeated placements; these are not unique resource-mesh counts.
+
+```ts
+import { RepairArchive } from '@uselessworks/3mfiy/repair';
+const archive = RepairArchive.read(originalBytes);
+const replacements = [{ id: archive.meshes[0]!.id, positions, indices }];
+archive.assertPatch(replacements); // validates without generating ZIP bytes
+const repairedBytes = archive.patch(replacements);
+```
+
+The caller supplies repaired geometry; this API does not repair or certify
+printability. `patch` changes only the necessary vertices/triangles XML
+containers. XML outside those containers and every other ZIP entry's
+uncompressed bytes are retained exactly. Recompression can change the ZIP
+bytes; a no-op returns the original bytes exactly. Unknown object attributes,
+component/build transforms, attachments, materials, printer/quality/filament
+configuration and relationship parts remain untouched. Returned snapshots
+cannot mutate the owned archive. Replacements apply atomically.
+
+Per-face properties/painting follow retained triangles through removal, ordering
+changes and vertex reindexing only when the result triangle matches the exact
+ordered source coordinates. The original triangle XML is reused, changing only
+its v1/v2/v3 index values. New or flipped painted triangles and ambiguous painted
+duplicates are refused; no paint or barycentric correspondence is invented.
+Recognized external face-index/range bindings still prohibit topology replacement.
+The known Bambu `Metadata/model_settings.config` part-level
+`mesh_stat/@face_count` and direct `config/object/metadata[@face_count]` with
+only that numeric attribute are diagnostic statistics and do not block edits.
+Their original values are retained and can become stale after repair. Other/unknown face-count references remain
+protected. The original triangle container is retained for coordinate-only
+changes. Unknown mesh or vertex markup also restricts replacement rather than
+silently losing data.
+This conservative policy does not promise arbitrary vendor-extension semantics
+or paint reconstruction after remeshing. Signed packages and embedded sliced
+toolpaths are rejected; use an unsliced project. ZIP limits, CRC/path checks,
+DTD rejection and finite vertex/index validation run before editing. Slicer
+verification and physical printing remain caller responsibilities.

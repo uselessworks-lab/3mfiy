@@ -70,3 +70,21 @@ exact Float64 geometry, shared mesh/material identity, repeated occurrences,
 part/print transform baking and reflected winding, reference validation and
 manufacturing exclusion. The browser/Worker harness also round-trips this writer.
 This adds an authoring entry and no new 3MF XML extension support.
+
+
+### Optional mesh-only preservation entry
+
+`./repair` offers archive-preserving vertex/triangle replacement independently
+of the typed authoring reader. It retains opaque vendor attachments, material
+resources, object identity, transforms and non-mesh XML without interpreting or
+rewriting them. Per-face attributes survive removal/reindexing of exact ordered
+source triangles; new/flipped/ambiguous painted faces are refused. Recognized
+external face-index/range metadata blocks topology edits; opaque mesh/vertex
+markup can also block edits. In Bambu model_settings.config, part-level
+`mesh_stat/@face_count` and object-level sole numeric `<metadata face_count="…"/>`
+are diagnostic exceptions: preserved bytes may contain stale counts after repair.
+Metadata keys, counts outside that known object position and actual face-index/range
+bindings remain protected. It does not reconstruct face painting, validate arbitrary
+vendor extension semantics, update sliced toolpaths or edit signed packages.
+Mixed-unit component references are explicitly unsupported. A successful patch
+is a preservation operation, not slicer or physical-print certification.

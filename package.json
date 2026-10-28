@@ -69,6 +69,10 @@
     "./filaments": {
       "types": "./dist/filaments.d.ts",
       "import": "./dist/filaments.js"
+    },
+    "./repair": {
+      "types": "./dist/repair.d.ts",
+      "import": "./dist/repair.js"
     }
   },
   "files": [

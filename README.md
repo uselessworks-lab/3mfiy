@@ -19,6 +19,7 @@ Your application supplies the geometry, placements, and printer profiles. A slic
 - Create and edit meshes, component assemblies, materials, colors, and textures
 - Position multiple parts and instances with transforms
 - Read, inspect, validate, and save 3MF documents
+- Replace mesh containers through optional `./repair`, retaining opaque project settings and refusing unsafe face-paint edits
 - Build Bambu Studio projects with multiple plates, filament settings, embedded presets, and PNG thumbnails
 - Use the same API in Node.js, browsers, and Web Workers, with TypeScript declarations included
 

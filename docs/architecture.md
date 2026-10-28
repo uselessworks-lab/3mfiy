@@ -66,3 +66,18 @@ model-specific source editing remain outside the printing contract.
 Object `print.orientation` is the pose before plate packing. Final print occurrences remain in `printing.placements`; repacking uses the original orientation rather than trying to recover it from a translated plate placement. Parts do not carry an object orientation. The type-only contract remains independent of the XML/ZIP writer.
 
 For Bambu output, `project.meshLayout: 'parts'` partitions completed component meshes into individual child model files; per-occurrence `meshPaths` remains the base-path authority. The writer owns file/resource distribution only, with unchanged caller geometry, placement and filament policy.
+
+
+## Optional mesh-preserving archive editing
+
+`package/repair.ts` owns `RepairArchive` in the optional `./repair` entry. Unlike
+typed document authoring it retains opaque source XML and package parts, and
+replaces only explicit geometry containers. Existing OPC ZIP/path/CRC and XML
+number/transform primitives remain canonical. The class owns original bytes,
+part spans and component references; callers exchange copied mesh/instance DTOs.
+Geometry repair and manufacturing policy remain outside 3mfiy. Exact ordered
+coordinate identity maps retained face attributes across safe removal/reindexing;
+external face bindings and opaque mesh markup reject unsafe replacement before
+serialization. Known Bambu mesh_stat and object metadata face-count diagnostics
+remain opaque and may be stale; their exclusion from the reference guard never
+rewrites the original config.
